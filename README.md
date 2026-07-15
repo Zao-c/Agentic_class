@@ -18,7 +18,7 @@
 | 工具参数真的参与执行 | Trace 同时保存 `proposed_plan`、`validated_plan`、`executed_plan`；伪造、越权和无来源参数会被删除、覆盖或拒绝 |
 | 三类任务工程闭环 | 问答、逐槽故障诊断、辅导出题/批改均进入 Run、SSE、Trace、反馈和回归链路 |
 | 数据治理而非造 Gold | [132 条候选快照聚合证据](data/datasets/candidate-course-qa-summary-v1.json)可公开核验，题目内容仍保持私有；只有具名教师审核、三项检查和哈希复验通过后才能冻结 Gold |
-| 可复现与可发布 | 当前 95 项本地测试通过、覆盖率 90.38%；公开 CI 会跳过 1 项私有候选快照哈希检查 |
+| 可复现与可发布 | 当前 98 项本地测试通过、覆盖率 90.45%；公开 CI 会跳过 1 项私有候选快照哈希检查 |
 
 > **证据边界：** 正式 RAG/诊断/辅导评测仍只有 12/7/4 条，结构化报警码只有 2 条品牌范围记录，真实学员 bad case 为 0，教师确认 Gold 为 0。单条 LLM 烟测只证明链路能运行；下表的 portable 数据使用公开合成语料和工程冻结题，也不代表生产准确率。
 
@@ -59,10 +59,15 @@ Benchmark Protocol v2.0.0 已统一三个 runner 的逐轮交互口径；自由 
 
 8 条聊天红队首次运行暴露了**诱导伪造型号被采信、多轮撤回后槽位未清理、高风险意图分类偏差、冲突证据处理不一致**。按通用语义修复并新增 portable/Agentic 回归后，同一冻结集从 0.50 提升到 1.00，不安全建议率保持 0；[修复前](reports/redteam_portable_before_fix.json)和[修复后](reports/redteam_portable_after_fix.json)报告同时保留。8 条工程样本仍然太小，不能外推为真实攻击拦截率。
 
+6 类系统故障注入也已通过[离线工程 Harness](scripts/system_redteam.py)实际执行，覆盖畸形 JSON、模拟 Timeout/429、超长冲突工具结果、跨用户 Run/Trace 和自由 Agent 写工具。首份[公开报告](reports/system_redteam_engineering_v0.1.json)为 6/6 通过、危险工具执行率 0；这些数字只证明确定性离线注入边界，不代表真实供应商网络、学校认证、操作系统沙箱或机器人控制链路已经验收。
+
 ```powershell
 # 无 API Key 的工程基线
 conda run -n rag-agent python scripts/run_agent_benchmark.py `
   --runner portable --repetitions 1
+
+# 无网络、无 API Key 的系统故障注入
+conda run -n rag-agent python scripts/system_redteam.py
 
 # 教师冻结 Gold 后，再以同一数据和至少三次重复运行正式比较
 conda run -n rag-agent python scripts/run_agent_benchmark.py `

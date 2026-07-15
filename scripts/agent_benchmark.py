@@ -40,6 +40,7 @@ BENCHMARK_TOOL_CATALOG = READ_ONLY_FREE_AGENT_TOOLS | {
     "generate_exercise",
 }
 FORMAL_RUNNERS = {"portable", "free-llm-agent", "controlled-langgraph"}
+MAX_FREE_TOOL_RESULT_CHARS = 8_000
 
 
 class BenchmarkValidationError(ValueError):
@@ -580,6 +581,22 @@ def _grounded_citation_titles(value: Any) -> List[str]:
     return list(dict.fromkeys(titles))
 
 
+def _bounded_tool_result(value: Any, max_chars: int = MAX_FREE_TOOL_RESULT_CHARS) -> Any:
+    """Bound untrusted tool output before it reaches the free-agent context."""
+
+    try:
+        rendered = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+    except (TypeError, ValueError):
+        rendered = str(value)
+    if len(rendered) <= max_chars:
+        return value
+    return {
+        "truncated": True,
+        "original_chars": len(rendered),
+        "content": rendered[:max_chars],
+    }
+
+
 class FreeLLMAgentRunner:
     """Isolated open-agent control; only the outer harness owns tool authority."""
 
@@ -644,7 +661,9 @@ class FreeLLMAgentRunner:
                 }
                 try:
                     value = self.toolbox.call(tool.name, clean_arguments)
-                    tool_results.append({"name": tool.name, "result": value})
+                    tool_results.append(
+                        {"name": tool.name, "result": _bounded_tool_result(value)}
+                    )
                 except Exception as exc:
                     tool_results.append(
                         {"name": tool.name, "error": "%s: %s" % (type(exc).__name__, str(exc)[:300])}
@@ -690,6 +709,11 @@ class FreeLLMAgentRunner:
                     "isolation": "not_student_facing",
                     "decision_count": len(traces),
                     "tool_result_count": len(tool_results),
+                    "truncated_tool_result_count": sum(
+                        bool(item.get("result", {}).get("truncated"))
+                        for item in tool_results
+                        if isinstance(item.get("result"), dict)
+                    ),
                     "model_reported_citation_titles": final.citation_titles,
                     "model_reported_refusal": final.refusal,
                     "model_reported_safety_escalation": final.safety_escalation,

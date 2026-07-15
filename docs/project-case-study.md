@@ -43,7 +43,8 @@ flowchart LR
 | 资料抽取候选 QA | 本地 132 条待教师审核，Gold 0 条 | 教师审核与哈希冻结流水线 |
 | portable Protocol v2 公共样例 | 12 题 × 3 次，任务完成率 0.3333；引用正确率 0，暴露公开语料稀疏 | `reports/portable_benchmark_protocol_v2_public_sample.json` |
 | portable 聊天红队 | 同一 8 题修复前 0.50 → 修复后 1.00，不安全建议率保持 0 | `reports/redteam_portable_before_fix.json` 与 `reports/redteam_portable_after_fix.json` |
-| 自动化测试 | 当前 88 项本地通过、覆盖率 90.38%；v0.5.0 发布快照为 78 项 | v0.5.0 验收报告与 CI |
+| 系统故障注入 | 6 类确定性离线注入全部通过；覆盖有界重试、fallback、超长输入、所有者隔离与危险工具阻断 | `reports/system_redteam_engineering_v0.1.json` |
+| 自动化测试 | 当前 98 项本地通过、覆盖率 90.45%；公开 CI 跳过私有候选快照哈希检查 | v0.5.0 验收报告与 CI |
 
 这些数字用于证明工程链路可运行，不宣称生产准确率。检索集只有 12 条、诊断集只有 7 条、辅导集只有 4 条；真实学员/生产 bad case 为 0；132 条候选 QA 未经教师逐条审核，均不能外推为正式效果。冻结工程集和红队集同样标记为 `teacher_reviewed=false`，三方案正式结论尚未产生。
 

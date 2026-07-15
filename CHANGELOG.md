@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 新增 6 类可执行系统红队 Harness：离线注入畸形 JSON、Timeout、429、超长冲突工具结果、跨用户访问和自由 Agent 写工具，并发布脱敏工程报告。
+- 自由 Agent 工具结果增加 8000 字符送模上限与截断元数据，防止超长不可信工具内容无界进入模型上下文。
 - 新增候选 QA 质量 lint：校验唯一 ID、必填字段、来源哈希、审核状态及 dedup/leakage group 跨 split 泄漏；重复题仅进入教师待审 warning。
 - 发布不含题面内容的 132 条候选快照聚合证据与 Schema，公开仓库可核验类型分布、来源数、重复率和私有快照 SHA256，同时保持 `teacher_reviewed=false` 与 `metric_eligibility=false`。
 - Benchmark Protocol 升级为 v2.0.0：三种 runner 统一逐轮执行，自由 Agent 不再提前看到未来轮次。

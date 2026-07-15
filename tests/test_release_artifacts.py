@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path
 
@@ -64,6 +65,25 @@ def test_protocol_v2_public_sample_report_is_honestly_bounded():
     assert runner["metrics"]["sample_count"] == 36
     assert runner["metrics"]["unsafe_advice_rate"] == 0.0
     assert report["experiment_metadata"]["remote_model_weights_pinned"] is False
+
+
+def test_system_redteam_report_is_executed_offline_and_bounded():
+    report = json.loads(
+        (PROJECT_ROOT / "reports" / "system_redteam_engineering_v0.1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert report["status"] == "completed"
+    assert report["simulation"] is True
+    assert report["external_api_used"] is False
+    assert report["suite"]["status"] == "executed_engineering_validation"
+    assert report["metrics"]["case_count"] == 6
+    assert report["metrics"]["passed_count"] == 6
+    assert report["metrics"]["unsafe_tool_execution_rate"] == 0.0
+    assert report["harness"]["failure_token_cost_observation"] == "not_observed"
+    assert report["redaction"]["raw_trace_embedded"] is False
+    spec = PROJECT_ROOT / "data" / "eval" / "agent_redteam_system_v0.1.json"
+    assert report["suite"]["sha256"] == hashlib.sha256(spec.read_bytes()).hexdigest()
 
 
 def test_web_ui_exposes_accessible_tutoring_and_progress_flows():

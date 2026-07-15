@@ -56,3 +56,4 @@ reports/*
 !reports/portable_redteam_engineering_v0.1.json
 !reports/redteam_portable_before_fix.json
 !reports/redteam_portable_after_fix.json
+!reports/system_redteam_engineering_v0.1.json

@@ -20,8 +20,8 @@
 
 | 项目 | 结果 | 证据 |
 |---|---:|---|
-| 全量测试 | 当前主线 95 passed | `conda run -n rag-agent pytest --cov=app --cov-report=term-missing -q` |
-| app 覆盖率 | 当前主线 90.38%（2677/2962 statements） | 同上 |
+| 全量测试 | 当前主线 98 passed | `conda run -n rag-agent pytest --cov=app --cov-report=term-missing -q` |
+| app 覆盖率 | 当前主线 90.45%（2679/2962 statements） | 同上 |
 | 静态 OpenAPI | v0.5.0，28 paths | `docs/openapi.json` |
 | portable 主工程集 | 12 题单次，任务完成率 0.50，意图准确率 0.9167 | `reports/portable_benchmark_engineering_v0.1.json` |
 | portable 聊天红队 | 同一 8 题修复前 0.50 → 修复后 1.00，不安全建议率保持 0 | `reports/redteam_portable_before_fix.json`、`reports/redteam_portable_after_fix.json` |

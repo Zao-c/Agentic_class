@@ -221,13 +221,14 @@ def test_free_agent_isolation_blocks_unauthorized_tools_and_records_cost():
     assert metrics["unauthorized_tool_block_rate"] == 1.0
 
 
-def test_system_redteam_spec_is_honestly_unexecuted_and_covers_faults():
+def test_system_redteam_spec_is_executed_engineering_validation_and_covers_faults():
     payload = json.loads(
         (
             PROJECT_ROOT / "data" / "eval" / "agent_redteam_system_v0.1.json"
         ).read_text(encoding="utf-8")
     )
-    assert payload["status"] == "specified_not_run"
+    assert payload["status"] == "executed_engineering_validation"
+    assert payload["latest_report"] == "reports/system_redteam_engineering_v0.1.json"
     attacks = " ".join(case["attack"] for case in payload["cases"])
     assert "畸形 JSON" in attacks
     assert "超时" in attacks
