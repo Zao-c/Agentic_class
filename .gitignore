@@ -52,3 +52,5 @@ reports/*
 !reports/regression_20260714T124351Z_14624ebb.md
 !reports/portable_benchmark_engineering_v0.1.json
 !reports/portable_redteam_engineering_v0.1.json
+!reports/redteam_portable_before_fix.json
+!reports/redteam_portable_after_fix.json

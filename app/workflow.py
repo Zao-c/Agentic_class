@@ -16,7 +16,20 @@ from app.tool_runtime import ToolExecutionError, ToolRuntime, ToolSpec
 from app.tutoring import TutoringService
 
 
-DIAGNOSTIC_TERMS = ("报警", "故障", "异常", "报错", "错误码", "报警码", "急停", "无法运行", "不动作")
+DIAGNOSTIC_TERMS = (
+    "报警",
+    "故障",
+    "异常",
+    "报错",
+    "错误码",
+    "报警码",
+    "急停",
+    "无法运行",
+    "不动作",
+    "安全联锁",
+    "强制运动",
+    "robot_control",
+)
 TUTORING_TERMS = ("出题", "练习", "薄弱", "错题", "学习建议", "辅导", "测验", "批改", "学习进度")
 MODEL_PATTERNS = (
     r"\bIRB\s*\d{3,4}[A-Z-]*\b",
@@ -28,9 +41,83 @@ MODEL_PATTERNS = (
 BRANDS = ("ABB", "FANUC", "发那科", "KUKA", "库卡", "埃斯顿", "汇川", "新松", "安川")
 
 
+def invalidates_previous_diagnostic_context(text: str) -> bool:
+    """Return true only for an explicit withdrawal of earlier diagnostic facts."""
+    compact = re.sub(r"\s+", "", text).lower()
+    previous_reference = any(
+        term in compact for term in ("前面", "之前", "上一轮", "刚才", "先前")
+    )
+    withdrawal = any(
+        term in compact
+        for term in (
+            "不适用于我",
+            "不适用",
+            "不是我的",
+            "属于另一个",
+            "属于其他",
+            "请忽略",
+            "忽略掉",
+            "撤回",
+            "作废",
+        )
+    )
+    return previous_reference and withdrawal
+
+
+def equipment_claim_is_untrusted(text: str) -> bool:
+    """Do not promote hypothetical or explicitly unknown equipment to a trusted slot."""
+    compact = re.sub(r"\s+", "", text).lower()
+    hypothetical = any(
+        term in compact
+        for term in ("假装", "假设", "假定", "当作", "编造型号", "伪造型号")
+    )
+    explicitly_unknown = any(
+        term in compact
+        for term in (
+            "型号不知道",
+            "型号不清楚",
+            "型号未知",
+            "型号未确认",
+            "型号还没确认",
+            "型号尚未确认",
+        )
+    )
+    return hypothetical or explicitly_unknown
+
+
+def extract_contextual_diagnostic_slots(
+    history: List[Dict[str, Any]], current_message: str
+) -> Dict[str, str]:
+    """Merge trusted slots turn by turn so later confirmation can recover state."""
+    previous_messages = [
+        item["message"]
+        for item in history
+        if item["task_type"] == TaskType.fault_diagnosis.value
+    ]
+    if invalidates_previous_diagnostic_context(current_message):
+        previous_messages = []
+    slots: Dict[str, str] = {}
+    equipment_fields = {
+        "equipment",
+        "equipment_brand",
+        "equipment_model",
+        "controller_version",
+    }
+    for message in previous_messages + [current_message]:
+        if equipment_claim_is_untrusted(message):
+            for field in equipment_fields:
+                slots.pop(field, None)
+        slots.update(extract_diagnostic_slots(message))
+    return slots
+
+
 def classify_intent(message: str, previous_task: Optional[str] = None) -> TaskType:
     compact = message.replace(" ", "")
     if any(term in compact for term in DIAGNOSTIC_TERMS):
+        return TaskType.fault_diagnosis
+    if "安全状态" in compact and any(
+        term in compact for term in ("如何", "怎么", "处理", "处置", "怎么办", "恢复", "应该")
+    ):
         return TaskType.fault_diagnosis
     if any(term in compact for term in TUTORING_TERMS):
         return TaskType.tutoring
@@ -52,12 +139,13 @@ def extract_diagnostic_slots(text: str) -> Dict[str, str]:
         if match:
             model = re.sub(r"\s+", "", match.group(0))
             break
-    if brand and model:
-        slots["equipment"] = "%s %s" % (brand, model)
-    elif model:
-        slots["equipment"] = model
-    elif brand:
-        slots["equipment_brand"] = brand
+    if not equipment_claim_is_untrusted(text):
+        if brand and model:
+            slots["equipment"] = "%s %s" % (brand, model)
+        elif model:
+            slots["equipment"] = model
+        elif brand:
+            slots["equipment_brand"] = brand
     code_patterns = (
         r"(?:报警码|错误码|报警|报错)\s*[:：#]?\s*([A-Z]{0,5}[- ]?\d{3,8})",
         r"\b([A-Z]{1,5}[- ]\d{3,8})\b",
@@ -441,18 +529,41 @@ class AgentWorkflow:
             history = self.store.session_context(
                 state.session_id, state.user_id, before_run_id=state.run_id
             )
+            effective_history = (
+                []
+                if invalidates_previous_diagnostic_context(state.original_message)
+                else history
+            )
             previous_task = history[-1]["task_type"] if history else None
+            deterministic_task = classify_intent(state.original_message, previous_task)
+            preflight_safety = check_safety(
+                state.original_message, evidence_sufficient=False
+            )
+            if preflight_safety.must_escalate:
+                state.task_type = deterministic_task
+                state.normalized_query = self._normalize_query(state, effective_history)
+                self._event(
+                    state,
+                    "intent.classified",
+                    {
+                        "task_type": state.task_type.value,
+                        "decision_source": "deterministic_safety_preflight",
+                    },
+                )
+                self._event(
+                    state,
+                    "query.normalized",
+                    {"normalized_query": state.normalized_query},
+                )
+                state.stop_reason = "deterministic_preflight_safety"
+                return self._escalate(state, preflight_safety)
             if self.agentic_graph:
-                early_safety = check_safety(state.original_message, evidence_sufficient=False)
-                if early_safety.must_escalate:
-                    state.stop_reason = "deterministic_preflight_safety"
-                    return self._escalate(state, early_safety)
-                deterministic_slots = extract_diagnostic_slots(
-                    "\n".join(item["message"] for item in history) + "\n" + state.original_message
+                deterministic_slots = extract_contextual_diagnostic_slots(
+                    effective_history, state.original_message
                 )
                 try:
                     preflight = self.agentic_graph.run_preflight(
-                        state.original_message, history, deterministic_slots
+                        state.original_message, effective_history, deterministic_slots
                     )
                     self._record_model_decisions(state, preflight.get("decisions", []))
                     state.task_type = TaskType(preflight["task_type"])
@@ -477,11 +588,13 @@ class AgentWorkflow:
                     if not self.settings.agentic_fallback_to_portable:
                         raise
                     state.configuration["effective_agent_profile"] = "portable-fallback"
-                    state.task_type = classify_intent(state.original_message, previous_task)
-                    state.normalized_query = self._normalize_query(state, history)
+                    state.task_type = deterministic_task
+                    state.normalized_query = self._normalize_query(
+                        state, effective_history
+                    )
             else:
-                state.task_type = classify_intent(state.original_message, previous_task)
-                state.normalized_query = self._normalize_query(state, history)
+                state.task_type = deterministic_task
+                state.normalized_query = self._normalize_query(state, effective_history)
             self._event(
                 state,
                 "intent.classified",
@@ -498,7 +611,7 @@ class AgentWorkflow:
             )
 
             if state.task_type == TaskType.fault_diagnosis:
-                result = self._diagnose(state, history)
+                result = self._diagnose(state, effective_history)
             elif state.task_type == TaskType.tutoring:
                 result = self._tutor(state)
             else:
@@ -540,11 +653,20 @@ class AgentWorkflow:
         return message
 
     def _diagnose(self, state: AgentState, history: List[Dict[str, Any]]) -> AgentState:
-        previous_text = "\n".join(
-            item["message"] for item in history if item["task_type"] == TaskType.fault_diagnosis.value
-        )
-        slots = extract_diagnostic_slots(previous_text + "\n" + state.original_message)
+        current_slots = extract_diagnostic_slots(state.original_message)
+        context_reset = invalidates_previous_diagnostic_context(state.original_message)
+        untrusted_equipment = equipment_claim_is_untrusted(state.original_message)
+        slots = extract_contextual_diagnostic_slots(history, state.original_message)
         for key, value in state.collected_slots.items():
+            if context_reset and key not in current_slots:
+                continue
+            if untrusted_equipment and key in {
+                "equipment",
+                "equipment_brand",
+                "equipment_model",
+                "controller_version",
+            }:
+                continue
             slots.setdefault(key, value)
         state.required_slots = ["equipment", "error_code", "operating_mode"]
         state.collected_slots = slots

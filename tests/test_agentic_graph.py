@@ -127,6 +127,38 @@ class FailingStructuredProvider(FakeStructuredProvider):
         raise DecisionProviderError("provider unavailable", attempts=2)
 
 
+class StaleHistoryStructuredProvider(FakeStructuredProvider):
+    """Actively proposes withdrawn history so the deterministic gate is exercised."""
+
+    def __init__(self):
+        super().__init__()
+        self.histories = {}
+
+    def decide(
+        self,
+        node: str,
+        schema: Type[BaseModel],
+        system_instruction: str,
+        payload: Dict[str, Any],
+    ) -> DecisionCall:
+        if "history" in payload:
+            self.histories.setdefault(node, []).append(payload["history"])
+        base = super().decide(node, schema, system_instruction, payload)
+        if schema is SlotExtractionDecision and "不适用于我" in payload.get("message", ""):
+            value = SlotExtractionDecision(
+                equipment_brand=ProposedSlot(value="ABB", source="session_history"),
+                equipment_model=ProposedSlot(value="IRB120", source="session_history"),
+                error_code=ProposedSlot(value="38213", source="session_history"),
+                operating_mode=ProposedSlot(value="手动模式", source="user_current"),
+                decision_basis="尝试沿用历史槽位",
+            )
+            return DecisionCall(
+                value,
+                {**base.trace, "output": value.model_dump(mode="json")},
+            )
+        return base
+
+
 def _agentic_client(tmp_path: Path, provider: FakeStructuredProvider) -> TestClient:
     knowledge = tmp_path / "knowledge"
     knowledge.mkdir()
@@ -340,3 +372,82 @@ def test_agentic_provider_failure_keeps_portable_tool_plan_trace(tmp_path: Path)
         )
         assert executed["arguments"]["query"] == trace["normalized_query"]
         assert executed["argument_sources"]["query"]["source"] == "deterministic_runtime"
+
+
+def test_agentic_context_withdrawal_hides_history_and_rejects_stale_proposals(
+    tmp_path: Path,
+):
+    provider = StaleHistoryStructuredProvider()
+    with _agentic_client(tmp_path, provider) as client:
+        first = client.post(
+            "/api/v1/chat",
+            json={
+                "session_id": "agentic-withdrawal",
+                "user_id": "student-withdrawal",
+                "message": "ABB IRB120 报警38213",
+            },
+        ).json()
+        assert client.get(
+            "/api/v1/runs/%s" % first["run_id"],
+            headers={"X-User-ID": "student-withdrawal"},
+        ).json()["status"] == "waiting_for_user"
+
+        second = client.post(
+            "/api/v1/chat",
+            json={
+                "session_id": "agentic-withdrawal",
+                "user_id": "student-withdrawal",
+                "message": "前面的设备报警信息不适用于我，手动模式。",
+            },
+        ).json()
+        result = client.get(
+            "/api/v1/runs/%s" % second["run_id"],
+            headers={"X-User-ID": "student-withdrawal"},
+        ).json()
+        trace = client.get(
+            "/api/v1/traces/%s" % second["request_id"],
+            headers={"X-Role": "teacher"},
+        ).json()
+
+        assert provider.histories["llm_query_rewrite"][-1] == []
+        assert provider.histories["llm_extract_slots"][-1] == []
+        assert result["task_type"] == "fault_diagnosis", trace["events"][-1]["data"]
+        assert result["status"] == "waiting_for_user"
+        assert result["collected_slots"] == {"operating_mode": "手动模式"}
+        assert "ABB" not in json.dumps(result["collected_slots"], ensure_ascii=False)
+        assert "38213" not in json.dumps(result["collected_slots"], ensure_ascii=False)
+
+
+def test_agentic_fallback_short_withdrawal_does_not_rewrite_with_old_message(
+    tmp_path: Path,
+):
+    provider = FailingStructuredProvider()
+    with _agentic_client(tmp_path, provider) as client:
+        client.post(
+            "/api/v1/chat",
+            json={
+                "session_id": "fallback-withdrawal",
+                "user_id": "student-fallback-withdrawal",
+                "message": "ABB IRB120 报警38213",
+            },
+        )
+        message = "撤回前面的设备报警，手动模式"
+        second = client.post(
+            "/api/v1/chat",
+            json={
+                "session_id": "fallback-withdrawal",
+                "user_id": "student-fallback-withdrawal",
+                "message": message,
+            },
+        ).json()
+        result = client.get(
+            "/api/v1/runs/%s" % second["run_id"],
+            headers={"X-User-ID": "student-fallback-withdrawal"},
+        ).json()
+        trace = client.get(
+            "/api/v1/traces/%s" % second["request_id"],
+            headers={"X-Role": "teacher"},
+        ).json()
+
+        assert trace["normalized_query"] == message
+        assert result["collected_slots"] == {"operating_mode": "手动模式"}

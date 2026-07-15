@@ -58,4 +58,4 @@ conda run -n rag-agent python scripts/run_agent_benchmark.py `
 
 `data/eval/agent_redteam_system_v0.1.json` 另外冻结了畸形 JSON、供应商超时、HTTP 429、超长冲突工具结果、跨用户 Trace 和自由 Agent 写工具六类故障注入规格。该文件当前状态是 `specified_not_run`；在建立可控的供应商/工具故障注入器之前，不得报告拦截率。
 
-当前只有 portable 在主工程验证集上完成一次本地运行，原始报告为 `reports/portable_benchmark_engineering_v0.1.json`。该次运行不是三方案正式对比，不能用于声称 Agentic 质量提升。
+当前只有 portable 在主工程验证集上完成一次本地运行，原始报告为 `reports/portable_benchmark_engineering_v0.1.json`。聊天红队首次运行报告 `reports/redteam_portable_before_fix.json` 的任务完成率为 0.50；修复工具前安全预检、假设实体、历史撤回和安全状态路由后，`reports/redteam_portable_after_fix.json` 在同一 8 条集上为 1.00。两份报告必须一起展示；该修复对 portable 与受控 Agent 都增加了独立回归，但 8 条工程样本不能代表真实攻击拦截率。以上均不是三方案正式对比，不能用于声称 Agentic 质量提升。

@@ -42,8 +42,8 @@ flowchart LR
 | bad case 回归 | 1/1 验收用例通过 | `reports/regression_20260714T124351Z_14624ebb.json` |
 | 资料抽取候选 QA | 本地 132 条待教师审核，Gold 0 条 | 教师审核与哈希冻结流水线 |
 | portable 冻结工程集 | 12 题单次，任务完成率 0.50 | `reports/portable_benchmark_engineering_v0.1.json` |
-| portable 聊天红队 | 8 题单次，任务完成率 0.50，不安全建议率 0 | `reports/portable_redteam_engineering_v0.1.json` |
-| 自动化测试 | 70 项通过，代码覆盖率 90.26% | `reports/pytest_v0.5.0.xml` 与 `reports/coverage_v0.5.0.xml` |
+| portable 聊天红队 | 同一 8 题修复前 0.50 → 修复后 1.00，不安全建议率保持 0 | `reports/redteam_portable_before_fix.json` 与 `reports/redteam_portable_after_fix.json` |
+| 自动化测试 | 78 项通过，代码覆盖率见 v0.5.0 验收报告 | `reports/pytest_v0.5.0.xml` 与 `reports/coverage_v0.5.0.xml` |
 
 这些数字用于证明工程链路可运行，不宣称生产准确率。检索集只有 12 条、诊断集只有 7 条、辅导集只有 4 条；真实学员/生产 bad case 为 0；132 条候选 QA 未经教师逐条审核，均不能外推为正式效果。冻结工程集和红队集同样标记为 `teacher_reviewed=false`，三方案正式结论尚未产生。
 
@@ -66,7 +66,7 @@ flowchart LR
 - 当前请求头角色只适合本地演示，真实教学必须接入学校身份认证。
 - 当前开发机没有 Docker CLI；已提供 CI 容器任务和完整验收脚本，但仍需在 Docker 主机完成 Compose、状态卷和重启恢复验收。
 - 已用进程内临时密钥完成 DeepSeek V4 Flash 真实 HTTP 烟测；仓库不保存密钥。三方案真实批量成本、P95 与安全对比尚未执行。
-- portable 红队已暴露型号伪造、多轮槽位污染、高风险意图分类和冲突证据处理问题，修复前不应进入真实教学试点。
+- portable 红队暴露的型号伪造、多轮槽位污染、高风险意图和冲突证据问题已增加通用修复与 Agentic 历史隔离回归；8 条复测通过仍不足以进入真实教学试点。
 
 ## 可复现入口
 
