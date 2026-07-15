@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "course_qa_v1",
+  "audited_on": "2026-07-15",
+  "dataset_sha256": "a78e8b609b7d113133a547718d1ec941875cabf966c99e418dd69bca38c7ae59",
+  "dataset_tier": "candidate",
+  "content_published": false,
+  "teacher_reviewed": false,
+  "metric_eligibility": false,
+  "total": 132,
+  "counts": {
+    "judgement": 51,
+    "single_choice": 63,
+    "training_task": 18
+  },
+  "source_count": 3,
+  "source_file_count": 3,
+  "review_status_counts": {
+    "needs_teacher_review": 132
+  },
+  "duplicate_group_count": 10,
+  "duplicate_item_count": 20,
+  "duplicate_rate": 0.1515,
+  "claim_boundary": "Aggregate evidence for a private candidate snapshot. It is not Gold data and must not be used to claim production quality or formal benchmark accuracy."
+}

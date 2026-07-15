@@ -31,6 +31,7 @@ data/eval/*
 !data/eval/agent_redteam_system_v0.1.json
 
 runtime/*.db*
+runtime/*.json
 runtime/neural_indexes/
 runtime/replays/
 runtime/evaluations/

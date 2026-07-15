@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "candidate-summary-schema.json",
+  "title": "Public Candidate Dataset Aggregate Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "audited_on",
+    "dataset_sha256",
+    "dataset_tier",
+    "content_published",
+    "teacher_reviewed",
+    "metric_eligibility",
+    "total",
+    "counts",
+    "source_count",
+    "source_file_count",
+    "review_status_counts",
+    "duplicate_group_count",
+    "duplicate_item_count",
+    "duplicate_rate",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "dataset_id": {"type": "string", "minLength": 1},
+    "audited_on": {"type": "string", "format": "date"},
+    "dataset_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "dataset_tier": {"type": "string", "const": "candidate"},
+    "content_published": {"type": "boolean", "const": false},
+    "teacher_reviewed": {"type": "boolean", "const": false},
+    "metric_eligibility": {"type": "boolean", "const": false},
+    "total": {"type": "integer", "minimum": 0},
+    "counts": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "source_count": {"type": "integer", "minimum": 0},
+    "source_file_count": {"type": "integer", "minimum": 0},
+    "review_status_counts": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "duplicate_group_count": {"type": "integer", "minimum": 0},
+    "duplicate_item_count": {"type": "integer", "minimum": 0},
+    "duplicate_rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "claim_boundary": {"type": "string", "minLength": 1}
+  }
+}

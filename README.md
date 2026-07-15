@@ -17,8 +17,8 @@
 | 真实受控 Agent | LangGraph `StateGraph` + DeepSeek 结构化决策已完成真实 HTTP 烟测；模型异常可显式 fallback |
 | 工具参数真的参与执行 | Trace 同时保存 `proposed_plan`、`validated_plan`、`executed_plan`；伪造、越权和无来源参数会被删除、覆盖或拒绝 |
 | 三类任务工程闭环 | 问答、逐槽故障诊断、辅导出题/批改均进入 Run、SSE、Trace、反馈和回归链路 |
-| 数据治理而非造 Gold | 132 条真实题库抽取 QA 仍是私有候选；只有具名教师审核、三项检查和哈希复验通过后才能冻结 Gold |
-| 可复现与可发布 | 当前 88 项本地测试通过、覆盖率 90.38%；公开 CI 会跳过 1 项私有候选数据检查 |
+| 数据治理而非造 Gold | [132 条候选快照聚合证据](data/datasets/candidate-course-qa-summary-v1.json)可公开核验，题目内容仍保持私有；只有具名教师审核、三项检查和哈希复验通过后才能冻结 Gold |
+| 可复现与可发布 | 当前 95 项本地测试通过、覆盖率 90.38%；公开 CI 会跳过 1 项私有候选快照哈希检查 |
 
 > **证据边界：** 正式 RAG/诊断/辅导评测仍只有 12/7/4 条，结构化报警码只有 2 条品牌范围记录，真实学员 bad case 为 0，教师确认 Gold 为 0。单条 LLM 烟测只证明链路能运行；下表的 portable 数据使用公开合成语料和工程冻结题，也不代表生产准确率。
 
@@ -103,13 +103,17 @@ python scripts/run_profile.py --profile agentic-online
 ## 教师审核与 Gold 冻结
 
 ```powershell
+# 先检查唯一性、来源哈希、重复组和 split 泄漏；不会自动作出教师决定
+python scripts/lint_candidate_dataset.py --verify-sources `
+  --report runtime/candidate-course-qa-lint-v1.json
+
 python scripts/manage_gold_dataset.py review-template
 python scripts/manage_gold_dataset.py import-review --review-batch-id teacher-review-001
 python scripts/manage_gold_dataset.py validate-review
 python scripts/manage_gold_dataset.py freeze --version 1.0.0
 ```
 
-`accepted` 必须具备教师角色、带时区审核时间、人工声明、来源/隐私/安全检查和 train/dev/test split；冻结会复验候选、单条记录、审核 CSV 与原始来源 SHA256，已有版本不可覆盖。当前没有满足条件的 accepted 记录，因此仓库刻意没有 Gold 产物。详见 [数据治理](data/datasets/README.md)。
+候选快照 lint 结果为 0 error、10 个重复组 warning（涉及 20/132 条）；重复项保留给教师逐条判断，不自动删除。`accepted` 必须具备教师角色、带时区审核时间、人工声明、来源/隐私/安全检查和 train/dev/test split；冻结会复验候选、单条记录、审核 CSV 与原始来源 SHA256，已有版本不可覆盖。当前没有满足条件的 accepted 记录，因此仓库刻意没有 Gold 产物。详见 [数据治理](data/datasets/README.md)。
 
 ## 安全与公开边界
 

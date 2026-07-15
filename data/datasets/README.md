@@ -9,6 +9,20 @@
 
 当前 132 条 QA 均为候选数据。仓库不会把模型判断、空白审核行或仅生成了参考答案的记录称为教师审核，也不会预生成虚假的 Gold 数据。
 
+## 候选集质量检查与公开证据
+
+在生成教师审核表前先运行：
+
+```powershell
+conda run -n rag-agent python scripts/lint_candidate_dataset.py `
+  --verify-sources `
+  --report runtime/candidate-course-qa-lint-v1.json
+```
+
+检查项包括：必填字段、唯一 ID、题面去重组、来源 locator/hash、候选审核状态，以及 dedup/leakage group 是否跨越 train/dev/test。重复题只产生 warning，保留给教师决定，不会被程序自动删除或接受。
+
+公开仓库不包含候选题面，但提供 [候选快照聚合证据](candidate-course-qa-summary-v1.json)与 [JSON Schema](candidate-summary-schema.json)。聚合文件只含数量、类型、来源文件数、审核状态、重复率和私有快照 SHA256，不含题目、答案、摘录、locator 或来源路径，也不能用于正式质量指标。
+
 ## 审核字段
 
 先生成最新版审核表：

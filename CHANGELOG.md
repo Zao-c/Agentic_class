@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 新增候选 QA 质量 lint：校验唯一 ID、必填字段、来源哈希、审核状态及 dedup/leakage group 跨 split 泄漏；重复题仅进入教师待审 warning。
+- 发布不含题面内容的 132 条候选快照聚合证据与 Schema，公开仓库可核验类型分布、来源数、重复率和私有快照 SHA256，同时保持 `teacher_reviewed=false` 与 `metric_eligibility=false`。
 - Benchmark Protocol 升级为 v2.0.0：三种 runner 统一逐轮执行，自由 Agent 不再提前看到未来轮次。
 - 自由 Agent 引用改为从实际工具结果派生；模型自报引用、拒答与转交只保留为审计 metadata。
 - 受控 Agent fallback 拆分为独立指标并取消横向比较资格；正式模式强制三 runner、至少三次重复并关闭 portable fallback。
