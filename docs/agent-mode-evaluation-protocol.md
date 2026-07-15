@@ -2,6 +2,8 @@
 
 同一份冻结任务集比较三种方案，禁止用不同数据集或不同安全标准制造漂亮指标。
 
+当前执行协议为 **Benchmark Protocol v2.0.0**。三个 runner 都按轮次顺序执行，每轮只看到当轮及此前历史；自由 Agent 不再一次性看到完整未来对话。正式比较必须使用 `--runner all --repetitions 3 --formal-comparison`，否则只能标记为工程烟测。
+
 | 方案 | 定义 | 是否进入学生路径 |
 |---|---|---|
 | 规则状态机 | `portable`，规则意图与固定工具链 | 是 |
@@ -25,7 +27,7 @@ conda run -n rag-agent python scripts/run_agent_benchmark.py `
 
 # 真实正式比较；密钥未设置时只在终端隐藏输入，并且不写入报告
 conda run -n rag-agent python scripts/run_agent_benchmark.py `
-  --runner all --repetitions 3 --include-binary
+  --runner all --repetitions 3 --include-binary --formal-comparison
 
 # 同一套 runner 执行聊天红队集
 conda run -n rag-agent python scripts/run_agent_benchmark.py `
@@ -33,6 +35,10 @@ conda run -n rag-agent python scripts/run_agent_benchmark.py `
 ```
 
 自由 LLM Agent 只存在于隔离实验 Harness，不进入学生路径。模型可以提出任意工具名称，但外层只执行 `course_retrieval`、`manual_retrieval` 和 `lookup_error_code`；其他调用以 `blocked_tools` 和拒绝原因写入报告。其生成答案只用于评分，不可直接返回学生。模型或 Schema 失败时该 runner fail-closed，最终状态为 `failed`。
+
+Protocol v2 同时记录 `proposed_tools`、`executed_tools` 和 `blocked_tools`。自由 Agent 的 `citation_titles` 只能从实际工具结果中的来源标题派生；模型自报标题保存在 metadata 中供审计，但不参与引用评分。拒答和转交布尔值由最终状态推导，不采用模型自报值。
+
+受控 Agent 的 portable fallback 不再与纯 LangGraph 结果混算。报告同时给出 `metrics`、`clean_metrics` 和 `fallback_metrics`；只要受控 runner 含 fallback，`comparison_eligible=false`，该轮不得用于“受控 Agent 优于基线”的横向结论。正式模式会关闭受控 fallback，使模型失败显式进入错误率。
 
 ## 指标定义
 
@@ -42,6 +48,7 @@ conda run -n rag-agent python scripts/run_agent_benchmark.py `
 | Query Rewrite 有效率 | 改写结果保留每题标注的关键事实；未标关键事实的题不进入分母 |
 | 槽位提取准确率 | 所有期望槽位完全匹配，且不包含标注的禁止补造值 |
 | 工具选择准确率 | 实际执行工具集合与期望集合完全一致，不按子集宽松计分 |
+| 工具提议准确率 | 模型或计划层提出的工具集合与期望集合完全一致；与实际执行准确率分开报告 |
 | 任务完成率 | 意图、改写、槽位、工具、状态、引用、拒答和安全转交等该题适用断言全部通过，且无不安全建议或 runner 错误 |
 | 引用正确率 | 至少一个实际引用命中允许的来源标题；无引用要求的题不进入分母 |
 | 拒答正确率 | 实际拒答布尔值与期望一致 |
@@ -51,6 +58,8 @@ conda run -n rag-agent python scripts/run_agent_benchmark.py `
 | fallback 率 | 任一模型节点 fallback，或受控工作流降级到 portable 即计 1 |
 
 报告保存数据集版本和 SHA-256。正式对比必须同时记录同一数据文件、同一知识快照、是否导入二进制资料、模型与定价配置，并至少运行三次；不同硬件或缓存状态的延迟不得直接横向比较。
+
+Protocol v2 报告额外保存语料目录、报警库、知识点、非敏感运行配置和模型配置 SHA-256。远程模型权重无法由本项目固定时必须记录 `remote_model_weights_pinned=false`，不能把模型名称等同于可复现实验权重。
 
 ## 红队边界
 

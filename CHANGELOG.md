@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Benchmark Protocol 升级为 v2.0.0：三种 runner 统一逐轮执行，自由 Agent 不再提前看到未来轮次。
+- 自由 Agent 引用改为从实际工具结果派生；模型自报引用、拒答与转交只保留为审计 metadata。
+- 受控 Agent fallback 拆分为独立指标并取消横向比较资格；正式模式强制三 runner、至少三次重复并关闭 portable fallback。
+- 报告新增语料、报警库、知识点、非敏感配置和模型配置指纹，以及 proposed/executed/blocked 工具分层统计。
+- 公开仓库与 GitHub Actions 已完成发布，测试和 Docker 健康检查均进入持续集成。
+
 ## 0.5.0 - 2026-07-15
 
 - 新增候选 QA → 教师审核 → 审计 → 不可覆盖 Gold 的数据治理流水线；人工声明、三项检查、split 与来源哈希是强制门禁，当前没有伪造 Gold。

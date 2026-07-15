@@ -1,5 +1,7 @@
 # 工业机器人课程智能助教 Agent
 
+[![CI](https://github.com/Zao-c/Agentic_class/actions/workflows/ci.yml/badge.svg)](https://github.com/Zao-c/Agentic_class/actions/workflows/ci.yml)
+
 一个面向工业机器人教学的**可控 Agentic RAG**：LangGraph 与 LLM 负责结构化判断和只读工具提议，确定性控制平面负责参数校验、安全、权限、报警适用范围、停止条件与人工转交。
 
 当前版本 **v0.5.0**。支持课程问答、故障辅助诊断和个性化辅导；系统只做教学信息整理，不连接或控制真实机器人。
@@ -16,9 +18,9 @@
 | 工具参数真的参与执行 | Trace 同时保存 `proposed_plan`、`validated_plan`、`executed_plan`；伪造、越权和无来源参数会被删除、覆盖或拒绝 |
 | 三类任务工程闭环 | 问答、逐槽故障诊断、辅导出题/批改均进入 Run、SSE、Trace、反馈和回归链路 |
 | 数据治理而非造 Gold | 132 条真实题库抽取 QA 仍是私有候选；只有具名教师审核、三项检查和哈希复验通过后才能冻结 Gold |
-| 可复现与可发布 | 当前 78 项测试通过；已配置 GitHub Actions、公开性扫描、Docker 构建检查和脱敏合成样例 |
+| 可复现与可发布 | 当前 88 项本地测试通过、覆盖率 90.38%；公开 CI 会跳过 1 项私有候选数据检查 |
 
-> **证据边界：** 正式 RAG/诊断/辅导评测仍只有 12/7/4 条，结构化报警码只有 2 条品牌范围记录，真实学员 bad case 为 0，教师确认 Gold 为 0。单条 LLM 烟测只证明链路能运行；下表的 portable 数据也只是单次工程验证，均不代表生产准确率。
+> **证据边界：** 正式 RAG/诊断/辅导评测仍只有 12/7/4 条，结构化报警码只有 2 条品牌范围记录，真实学员 bad case 为 0，教师确认 Gold 为 0。单条 LLM 烟测只证明链路能运行；下表的 portable 数据使用公开合成语料和工程冻结题，也不代表生产准确率。
 
 ## 为什么它不是 PDF 聊天机器人
 
@@ -47,9 +49,11 @@ flowchart LR
 
 统一 Harness 已支持 `portable`、隔离的 `free-llm-agent` 和 `controlled-langgraph`，记录意图、Query Rewrite、槽位、工具、完成率、引用、拒答、安全转交、Token、成本、P50/P95 与 fallback。
 
+Benchmark Protocol v2.0.0 已统一三个 runner 的逐轮交互口径；自由 Agent 的引用只从实际工具结果提取，模型自报引用不参与评分；受控 Agent 一旦发生 portable fallback，会单独进入 `fallback_metrics` 并取消横向比较资格。正式模式还会记录语料、报警库、知识点、配置与模型配置指纹。
+
 | 方案 | 冻结工程集状态 | 任务完成率 | 当前结论 |
 |---|---:|---:|---|
-| Portable 状态机 | 已单次运行 12 题 | 0.50 | 可复现基线；暴露了若干意图、引用和工具匹配失败 |
+| Portable 状态机 | Protocol v2 公共样例，12 题 × 3 次 | 0.3333 | 可公开复现；稀疏合成语料下引用正确率为 0，诚实暴露证据不足 |
 | 自由 LLM Agent | 未运行 | — | 只允许在隔离 Harness 中运行，输出不进入学生路径 |
 | LangGraph 受控 Agent | 单条真实烟测；批量未运行 | — | 已证明真实模型链路，尚不能宣称质量提升 |
 
@@ -62,10 +66,12 @@ conda run -n rag-agent python scripts/run_agent_benchmark.py `
 
 # 教师冻结 Gold 后，再以同一数据和至少三次重复运行正式比较
 conda run -n rag-agent python scripts/run_agent_benchmark.py `
-  --runner all --repetitions 3 --include-binary
+  --runner all --repetitions 3 --include-binary --formal-comparison
 ```
 
 协议、指标定义和红队边界见 [Agent 模式对比评测协议](docs/agent-mode-evaluation-protocol.md)。当前主集与红队集均标记为 `frozen_engineering_validation`、`teacher_reviewed=false`。
+
+可复现原始结果见 [Protocol v2 portable 公共样例报告](reports/portable_benchmark_protocol_v2_public_sample.json)。该报告只有 portable 基线，不是三方案正式对比，也不能代表真实课程语料准确率。
 
 ## 三分钟启动
 
@@ -111,8 +117,8 @@ python scripts/manage_gold_dataset.py freeze --version 1.0.0
 - Run、SSE 和学生 Trace 按所有者隔离；教师只读取授权数据，班级视图不返回学生标识。
 - 原始课程资料、题库候选、数据库、模型缓存和本地索引均在 Git 排除列表中；公开镜像只使用 `data/public_sample` 原创合成样例。
 - `python scripts/audit_public_release.py --strict` 检查密钥、私钥、个人联系方式、本机绝对路径、超大文件和本地资料误跟踪。
-- 本机目前没有 Docker CLI。完整 build/up、健康、三任务、状态卷和重启恢复必须在 Docker 主机执行 `python scripts/accept_docker.py`，不能把配置文件或 CI 定义当成本机验收结果。
-- 当前许可证为作品展示用途；公开仓库前仍需确认仓库所有者、版权清单和每个可发布数据文件。
+- GitHub Actions 已在 Ubuntu runner 完成镜像构建和 `/ready` 健康检查；Compose 持久化卷、重启恢复与指定部署机器信息仍需通过 `python scripts/accept_docker.py` 单独验收。
+- 公开仓库位于 [Zao-c/Agentic_class](https://github.com/Zao-c/Agentic_class)；许可仍限定为作品展示用途，课程资料和候选数据继续保持私有，后续公开新数据前仍需完成版权与隐私审核。
 
 ## 文档索引
 

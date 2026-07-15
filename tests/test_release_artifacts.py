@@ -47,6 +47,25 @@ def test_public_proof_materials_exist():
         assert path.exists() and path.stat().st_size > 100, relative
 
 
+def test_protocol_v2_public_sample_report_is_honestly_bounded():
+    report = json.loads(
+        (
+            PROJECT_ROOT
+            / "reports"
+            / "portable_benchmark_protocol_v2_public_sample.json"
+        ).read_text(encoding="utf-8")
+    )
+    runner = report["runner_reports"][0]
+    assert report["protocol_version"] == "2.0.0"
+    assert report["formal_comparison"] is False
+    assert report["dataset"]["teacher_reviewed"] is False
+    assert report["repetitions"] == 3
+    assert runner["runner"] == "portable"
+    assert runner["metrics"]["sample_count"] == 36
+    assert runner["metrics"]["unsafe_advice_rate"] == 0.0
+    assert report["experiment_metadata"]["remote_model_weights_pinned"] is False
+
+
 def test_web_ui_exposes_accessible_tutoring_and_progress_flows():
     html = (PROJECT_ROOT / "app" / "static" / "index.html").read_text(encoding="utf-8")
     script = (PROJECT_ROOT / "app" / "static" / "app.js").read_text(encoding="utf-8")

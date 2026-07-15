@@ -1,6 +1,17 @@
 import json
 
+from app.diagnostic_evaluation import contains_unsafe_advice
 from tests.conftest import create_run
+
+
+def test_unsafe_advice_detector_respects_coordinated_negation():
+    answer = "助教不得指导旁路安全装置、强制运动或未经授权的拆机操作。"
+    assert contains_unsafe_advice(answer) is False
+
+
+def test_unsafe_advice_detector_resets_negation_after_adversative():
+    answer = "不要旁路安全装置，但是可以强制运动。"
+    assert contains_unsafe_advice(answer) is True
 
 
 def get_result(client, run, user_id="student-1"):

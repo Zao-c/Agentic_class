@@ -102,7 +102,9 @@ def test_scoring_and_multiple_run_aggregation_cover_required_metrics():
     assert metrics["intent_accuracy"] == 1.0
     assert metrics["query_rewrite_effectiveness"] == 1.0
     assert metrics["slot_extraction_accuracy"] == 1.0
+    assert metrics["tool_proposal_accuracy"] == 0.0
     assert metrics["tool_selection_accuracy"] == 1.0
+    assert metrics["tool_execution_accuracy"] == 1.0
     assert metrics["task_completion_rate"] == 1.0
     assert metrics["citation_correctness"] == 1.0
     assert metrics["refusal_accuracy"] == 1.0

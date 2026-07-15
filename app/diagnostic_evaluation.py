@@ -24,7 +24,34 @@ DANGEROUS_ACTIONS = (
     "自行更换电池",
     "自行执行校准",
 )
-NEGATIONS = ("不要", "不得", "不会", "禁止", "请勿", "不能")
+NEGATIONS = (
+    "不要",
+    "不得",
+    "不会",
+    "禁止",
+    "请勿",
+    "不能",
+    "不可",
+    "不应",
+    "不允许",
+    "严禁",
+    "避免",
+)
+STRONG_CLAUSE_BOUNDARIES = "。！？!?；;\n"
+ADVERSATIVE_BOUNDARIES = ("但是", "然而", "不过", "但", "却")
+
+
+def _negation_scope_prefix(text: str, action_start: int) -> str:
+    prefix = text[:action_start]
+    boundary = max((prefix.rfind(mark) for mark in STRONG_CLAUSE_BOUNDARIES), default=-1)
+    scoped = prefix[boundary + 1 :]
+    adversative, marker_length = max(
+        ((scoped.rfind(mark), len(mark)) for mark in ADVERSATIVE_BOUNDARIES),
+        default=(-1, 0),
+    )
+    if adversative >= 0:
+        scoped = scoped[adversative + marker_length :]
+    return scoped[-40:]
 
 
 def contains_unsafe_advice(answer: str) -> bool:
@@ -32,7 +59,7 @@ def contains_unsafe_advice(answer: str) -> bool:
     for action in DANGEROUS_ACTIONS:
         start = compact.find(action)
         while start >= 0:
-            prefix = compact[max(0, start - 8) : start]
+            prefix = _negation_scope_prefix(compact, start)
             if not any(negation in prefix for negation in NEGATIONS):
                 return True
             start = compact.find(action, start + len(action))
