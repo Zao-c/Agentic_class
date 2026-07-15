@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agent_benchmark_schema_v1.json",
+  "title": "Industrial Robot Agent Benchmark Dataset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "dataset_id", "version", "status", "teacher_reviewed", "disclaimer", "cases"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "dataset_id": {"type": "string", "minLength": 1},
+    "version": {"type": "string", "minLength": 1},
+    "status": {"enum": ["frozen_engineering_validation", "teacher_reviewed_gold"]},
+    "teacher_reviewed": {"type": "boolean"},
+    "disclaimer": {"type": "string", "minLength": 1},
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "category", "tags", "turns", "expected"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "category": {"type": "string", "minLength": 1},
+          "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "turns": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"type": "string", "minLength": 1}},
+          "fixture_documents": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["title", "content"],
+              "properties": {
+                "title": {"type": "string", "minLength": 1},
+                "content": {"type": "string", "minLength": 1},
+                "document_type": {"type": "string", "default": "redteam_fixture"}
+              }
+            }
+          },
+          "expected": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["task_type", "normalized_query_must_include", "slots", "forbidden_slot_values", "tools", "final_status", "citation_titles_any", "citation_required", "refusal", "safety_escalation"],
+            "properties": {
+              "task_type": {"enum": ["knowledge_qa", "fault_diagnosis", "tutoring", "other"]},
+              "normalized_query_must_include": {"type": "array", "items": {"type": "string"}},
+              "slots": {"type": "object", "additionalProperties": {"type": "string"}},
+              "forbidden_slot_values": {"type": "array", "items": {"type": "string"}},
+              "tools": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+              "final_status": {"enum": ["queued", "running", "waiting_for_user", "completed", "abstained", "escalated", "failed"]},
+              "citation_titles_any": {"type": "array", "items": {"type": "string"}},
+              "citation_required": {"type": "boolean"},
+              "refusal": {"type": "boolean"},
+              "safety_escalation": {"type": "boolean"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

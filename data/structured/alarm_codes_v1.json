@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "ABB 课程设备；原始课程资料未标明具体机器人型号",
+  "records": [
+    {
+      "equipment_brand": "ABB",
+      "equipment_models": ["*"],
+      "controller_versions": [],
+      "code": "10036",
+      "title": "转数计数器需要更新",
+      "meaning": "课程资料将报警 10036 解释为转数计数器需要更新。该状态涉及机器人轴位置与校准数据，不能仅凭报警编号直接执行校准。",
+      "likely_causes": [
+        "转数计数器数据丢失或被修改",
+        "电机与串行测量链路曾断开",
+        "机器人在断电状态下发生过关节移动",
+        "旋转变压器与测量链路之间的连接曾断开"
+      ],
+      "safe_checks": [
+        "记录示教器上的完整报警原文、发生时间和当前各轴状态",
+        "确认设备品牌、完整型号和控制器版本",
+        "核对近期是否发生过断电搬动、测量链路维修或校准数据变更"
+      ],
+      "forbidden_actions": [
+        "不要在无教师或授权人员监护时执行转数计数器更新",
+        "不要移动机器人去猜测机械零点",
+        "不要拆开控制柜或测量链路"
+      ],
+      "risk_level": "high",
+      "source_title": "工业机器人操作与编程-整体课件整理版",
+      "source_locator": "机器人系统数据与转数计数器",
+      "source_excerpt": "课程资料列出系统提示 10036、转数计数器数据丢失或修改、测量链路断开以及断电后关节移动等场景。",
+      "version": "course-extract-2026-07-14",
+      "effective_date": "2026-07-14",
+      "review_status": "source_verified",
+      "access_scope": "public",
+      "is_active": true
+    },
+    {
+      "equipment_brand": "ABB",
+      "equipment_models": ["*"],
+      "controller_versions": [],
+      "code": "38213",
+      "title": "机器人电池电量低",
+      "meaning": "课程资料将报警 38213 解释为机器人电池电量低。电池用于控制器断电期间保持机器人相关数据。",
+      "likely_causes": [
+        "机器人备份电池电量低"
+      ],
+      "safe_checks": [
+        "记录示教器上的完整报警原文和发生时间",
+        "查看事件日志，确认是否持续出现相同电池低电量提示",
+        "确认设备完整型号和控制器版本后交由教师安排后续处理"
+      ],
+      "forbidden_actions": [
+        "不要自行打开控制柜或更换电池",
+        "不要清除报警后继续忽略重复出现的低电量提示"
+      ],
+      "risk_level": "medium",
+      "source_title": "工业机器人操作与编程-整体课件整理版",
+      "source_locator": "机器人电池",
+      "source_excerpt": "课程资料说明机器人电池用于断电期间保持数据，并列出 38213 电池电量低提示。",
+      "version": "course-extract-2026-07-14",
+      "effective_date": "2026-07-14",
+      "review_status": "source_verified",
+      "access_scope": "public",
+      "is_active": true
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>工业机器人课程智能助教</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <main class="shell" id="main-content">
+    <aside class="sidebar">
+      <div class="brand-mark">IR</div>
+      <div>
+        <p class="eyebrow">COURSE AGENT</p>
+        <h1>工业机器人<br>智能助教</h1>
+      </div>
+      <nav aria-label="主要功能">
+        <button class="nav-item active" data-view="chat" aria-current="page">课程问答</button>
+        <button class="nav-item" data-view="chat" data-prompt="ABB IRB120 报警 38213，故障发生在手动模式">故障辅助</button>
+        <button class="nav-item" data-view="chat" data-prompt="给我出一道示教编程练习">个性化辅导</button>
+        <button class="nav-item" data-view="progress">我的进度</button>
+        <button class="nav-item" data-view="teacher">班级概览</button>
+      </nav>
+      <div class="safety-note">
+        <span>安全边界</span>
+        <p>本系统不直接控制设备。高风险操作会转交教师或专业人员。</p>
+      </div>
+    </aside>
+
+    <section class="workspace" aria-labelledby="workspace-title">
+      <header>
+        <div>
+          <p class="eyebrow">TEACHING WORKSPACE</p>
+          <h2 id="workspace-title">今天想解决什么问题？</h2>
+        </div>
+        <div class="status" id="service-status"><i></i> 服务在线</div>
+      </header>
+
+      <div id="conversation" class="conversation" aria-live="polite" aria-relevant="additions">
+        <article class="message assistant">
+          <div class="avatar">助</div>
+          <div class="bubble">
+            <strong>你好，我是课程智能助教。</strong>
+            <p>我可以检索课程资料、辅助收集故障信息，也能生成带依据的练习。证据不足时，我会明确说明。</p>
+          </div>
+        </article>
+        <div class="suggestions">
+          <button>示教编程的一般步骤是什么？</button>
+          <button>系统恢复前要注意什么？</button>
+          <button>ABB 机器人报警了，应该怎么排查？</button>
+        </div>
+      </div>
+
+      <section id="dashboard" class="dashboard" hidden aria-live="polite"></section>
+
+      <div id="trace-panel" class="trace-panel" hidden aria-live="polite">
+        <div class="trace-head"><span>运行过程</span><span id="trace-status">处理中</span></div>
+        <div id="trace-steps" class="trace-steps"></div>
+      </div>
+
+      <form id="chat-form" class="composer">
+        <label class="sr-only" for="message">输入课程、操作流程或故障问题</label>
+        <textarea id="message" rows="2" placeholder="输入课程、操作流程或故障问题……" required aria-describedby="composer-help"></textarea>
+        <button type="submit" aria-label="发送">发送</button>
+        <p id="composer-help">回答基于已导入课程资料 · 请勿将建议直接用于无人监护的设备操作</p>
+      </form>
+    </section>
+  </main>
+  <div id="app-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

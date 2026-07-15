@@ -1,0 +1,112 @@
+{
+  "schema_version": "1.0.0",
+  "evaluation_run_id": "tutoring_eval_20260714T130857Z",
+  "dataset": "tutoring_eval_v1.json",
+  "dataset_version": "2026-07-14",
+  "configuration": {
+    "grading": "deterministic_keyword_criteria_v1",
+    "mastery": "cumulative_mean_v1",
+    "retrieval_strategy": "hybrid_rerank",
+    "knowledge_point_catalog": "knowledge_points_v1.json"
+  },
+  "metrics": {
+    "case_count": 4,
+    "score_range_accuracy": 1.0,
+    "mastery_status_accuracy": 1.0,
+    "source_traceability_rate": 1.0,
+    "progress_update_rate": 1.0,
+    "average_absolute_score_error": 0.0
+  },
+  "cases": [
+    {
+      "id": "TUTOR-001",
+      "knowledge_point_id": "kp_teach_programming_steps",
+      "score": 100.0,
+      "expected_score": 100.0,
+      "absolute_score_error": 0.0,
+      "score_in_range": true,
+      "mastery_status": "proficient",
+      "expected_mastery_status": "proficient",
+      "mastery_status_correct": true,
+      "matched_points": [
+        "明确动作路径和工艺目标",
+        "检查设备和现场安全",
+        "手动模式示教并记录点位",
+        "设置运动和坐标参数",
+        "编写程序逻辑",
+        "低速或单步试运行",
+        "检查调整后正式运行"
+      ],
+      "missing_points": [],
+      "source_traceable": true,
+      "progress_updated": true
+    },
+    {
+      "id": "TUTOR-002",
+      "knowledge_point_id": "kp_teach_programming_steps",
+      "score": 28.57,
+      "expected_score": 28.57,
+      "absolute_score_error": 0.0,
+      "score_in_range": true,
+      "mastery_status": "needs_review",
+      "expected_mastery_status": "needs_review",
+      "mastery_status_correct": true,
+      "matched_points": [
+        "手动模式示教并记录点位",
+        "低速或单步试运行"
+      ],
+      "missing_points": [
+        "明确动作路径和工艺目标",
+        "检查设备和现场安全",
+        "设置运动和坐标参数",
+        "编写程序逻辑",
+        "检查调整后正式运行"
+      ],
+      "source_traceable": true,
+      "progress_updated": true
+    },
+    {
+      "id": "TUTOR-003",
+      "knowledge_point_id": "kp_io_signal_configuration",
+      "score": 100.0,
+      "expected_score": 100.0,
+      "absolute_score_error": 0.0,
+      "score_in_range": true,
+      "mastery_status": "proficient",
+      "expected_mastery_status": "proficient",
+      "mastery_status_correct": true,
+      "matched_points": [
+        "进入 I/O 配置界面",
+        "核对信号和外部连接",
+        "设置信号参数",
+        "监控并验证状态变化",
+        "在程序中调用信号"
+      ],
+      "missing_points": [],
+      "source_traceable": true,
+      "progress_updated": true
+    },
+    {
+      "id": "TUTOR-004",
+      "knowledge_point_id": "kp_system_restore",
+      "score": 0.0,
+      "expected_score": 0.0,
+      "absolute_score_error": 0.0,
+      "score_in_range": true,
+      "mastery_status": "needs_review",
+      "expected_mastery_status": "needs_review",
+      "mastery_status_correct": true,
+      "matched_points": [],
+      "missing_points": [
+        "进入备份与恢复界面",
+        "选择备份文件",
+        "核对系统和版本匹配",
+        "执行并等待恢复完成",
+        "检查程序参数和系统状态"
+      ],
+      "source_traceable": true,
+      "progress_updated": true
+    }
+  ],
+  "created_at": "2026-07-14T13:08:57.523245+00:00"
+}

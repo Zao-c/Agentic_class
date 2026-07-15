@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://courseops.local/schemas/robot-tutor-trace-2.0.0.json",
+  "title": "Industrial Robot Tutor Trace",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "request_id",
+    "run_id",
+    "session_id",
+    "anonymous_user_id",
+    "task_type",
+    "status",
+    "state",
+    "events",
+    "exported_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "2.0.0"},
+    "request_id": {"type": "string", "pattern": "^req_"},
+    "run_id": {"type": "string", "pattern": "^run_"},
+    "session_id": {"type": "string"},
+    "anonymous_user_id": {"type": "string", "minLength": 16, "maxLength": 16},
+    "task_type": {"enum": ["knowledge_qa", "fault_diagnosis", "tutoring", "other"]},
+    "status": {"enum": ["queued", "running", "waiting_for_user", "completed", "abstained", "escalated", "failed"]},
+    "normalized_query": {"type": "string"},
+    "state": {
+      "type": "object",
+      "properties": {
+        "transition_count": {"type": "integer", "minimum": 0},
+        "decision_history": {"type": "array", "items": {"type": "object"}},
+        "field_provenance": {"type": "object"},
+        "configuration": {
+          "type": "object",
+          "properties": {
+            "agentic_tool_plan": {
+              "type": "object",
+              "required": ["proposed_plan", "validated_plan", "executed_plan", "adjustments"],
+              "properties": {
+                "proposed_plan": {"type": "array", "items": {"type": "object"}},
+                "validated_plan": {"type": "array", "items": {"type": "object"}},
+                "executed_plan": {"type": "array", "items": {"type": "object"}},
+                "adjustments": {"type": "array", "items": {"type": "object"}}
+              },
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": true
+        },
+        "model_usage": {
+          "type": "object",
+          "properties": {
+            "input_tokens": {"type": "integer", "minimum": 0},
+            "output_tokens": {"type": "integer", "minimum": 0},
+            "total_tokens": {"type": "integer", "minimum": 0},
+            "estimated_cost_usd": {"type": "number", "minimum": 0},
+            "call_count": {"type": "integer", "minimum": 0}
+          }
+        },
+        "stop_reason": {"type": ["string", "null"]}
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sequence", "event_type", "data", "created_at"],
+        "properties": {
+          "sequence": {"type": "integer", "minimum": 1},
+          "event_type": {"type": "string"},
+          "data": {"type": "object"},
+          "created_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "exported_at": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": true
+}

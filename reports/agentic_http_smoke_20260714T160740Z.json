@@ -1,0 +1,128 @@
+{
+  "executed_at": "2026-07-14T16:07:40.192288+00:00",
+  "profile": {
+    "requested_profile": "agentic-quality",
+    "effective_profile": "agentic-quality",
+    "langgraph_enabled": true,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "fallback_to_portable": true
+  },
+  "indexed_chunks": 10,
+  "request_id": "req_6d0fcf56581041b7aad979e9a5305eae",
+  "task_type": "fault_diagnosis",
+  "status": "completed",
+  "risk_level": "medium",
+  "stop_reason": "diagnostic_evidence_and_safety_passed",
+  "collected_slots": {
+    "equipment": "ABB IRB120",
+    "error_code": "38213",
+    "operating_mode": "手动模式"
+  },
+  "citation_titles": [
+    "工业机器人操作与编程-整体课件整理版",
+    "示教器常用按钮功能说明",
+    "robot_terms_seed_v3"
+  ],
+  "decisions": [
+    {
+      "node": "llm_intent",
+      "schema_name": "IntentDecision",
+      "usage": {
+        "input_tokens": 238,
+        "output_tokens": 36,
+        "total_tokens": 274
+      },
+      "duration_ms": 1251.07,
+      "attempts": 1,
+      "validation_result": "passed",
+      "fallback_used": false
+    },
+    {
+      "node": "llm_query_rewrite",
+      "schema_name": "QueryRewriteDecision",
+      "usage": {
+        "input_tokens": 220,
+        "output_tokens": 55,
+        "total_tokens": 275
+      },
+      "duration_ms": 1239.06,
+      "attempts": 1,
+      "validation_result": "passed",
+      "fallback_used": false
+    },
+    {
+      "node": "llm_extract_slots",
+      "schema_name": "SlotExtractionDecision",
+      "usage": {
+        "input_tokens": 396,
+        "output_tokens": 127,
+        "total_tokens": 523
+      },
+      "duration_ms": 1266.92,
+      "attempts": 1,
+      "validation_result": "passed",
+      "fallback_used": false
+    },
+    {
+      "node": "llm_tool_plan",
+      "schema_name": "ToolPlanDecision",
+      "usage": {
+        "input_tokens": 373,
+        "output_tokens": 160,
+        "total_tokens": 533
+      },
+      "duration_ms": 1737.1,
+      "attempts": 1,
+      "validation_result": "passed",
+      "fallback_used": false
+    },
+    {
+      "node": "llm_evidence_support",
+      "schema_name": "EvidenceSupportDecision",
+      "usage": {
+        "input_tokens": 1069,
+        "output_tokens": 105,
+        "total_tokens": 1174
+      },
+      "duration_ms": 1835.48,
+      "attempts": 1,
+      "validation_result": "passed",
+      "fallback_used": false
+    }
+  ],
+  "tools": [
+    {
+      "tool_name": "lookup_error_code",
+      "status": "success",
+      "attempts": 1,
+      "duration_ms": 9.74
+    },
+    {
+      "tool_name": "manual_retrieval",
+      "status": "success",
+      "attempts": 1,
+      "duration_ms": 3355.07
+    },
+    {
+      "tool_name": "check_safety_constraint",
+      "status": "success",
+      "attempts": 1,
+      "duration_ms": 1.27
+    },
+    {
+      "tool_name": "record_diagnostic_state",
+      "status": "success",
+      "attempts": 1,
+      "duration_ms": 16.9
+    }
+  ],
+  "model_usage": {
+    "input_tokens": 2296,
+    "output_tokens": 483,
+    "total_tokens": 2779,
+    "estimated_cost_usd": 0.00045668,
+    "call_count": 5
+  },
+  "trace_schema_version": "2.0.0"
+}

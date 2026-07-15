@@ -1,0 +1,24 @@
+services:
+  robot-tutor:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: production
+      DATABASE_PATH: /app/runtime/robot_tutor.db
+      KNOWLEDGE_ROOT: /app/data/active
+      EVALUATION_ROOT: /app/data/eval
+      ALARM_CODE_DATA_PATH: /app/data/structured/alarm_codes_v1.json
+      KNOWLEDGE_POINT_DATA_PATH: /app/data/structured/knowledge_points_v1.json
+      REPORTS_ROOT: /app/reports
+      AUTO_INGEST: "true"
+      AUTO_INGEST_ALARM_CODES: "true"
+      AUTO_INGEST_KNOWLEDGE_POINTS: "true"
+      INGEST_BINARY_DOCUMENTS: "false"
+    volumes:
+      - ./runtime:/app/runtime
+      - ./reports:/app/reports
+      - ./data/active:/app/data/active:ro
+      - ./data/eval:/app/data/eval:ro
+      - ./data/structured:/app/data/structured:ro
+    restart: unless-stopped

@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "regression_run_id": "regression_20260714T124351Z_14624ebb",
+  "case_count": 1,
+  "passed": 1,
+  "failed": 0,
+  "pass_rate": 1.0,
+  "cases": [
+    {
+      "regression_case_id": "reg_878607df4dec27d385ddb32e",
+      "bad_case_id": "bad_0abf5712dc824a279b393ef4f51bf322",
+      "passed": true,
+      "checks": [
+        {
+          "name": "must_not_fail",
+          "expected": true,
+          "actual": "completed",
+          "passed": true
+        },
+        {
+          "name": "expected_status",
+          "expected": "completed",
+          "actual": "completed",
+          "passed": true
+        },
+        {
+          "name": "expected_task_type",
+          "expected": "knowledge_qa",
+          "actual": "knowledge_qa",
+          "passed": true
+        },
+        {
+          "name": "expected_risk_level",
+          "expected": "low",
+          "actual": "low",
+          "passed": true
+        },
+        {
+          "name": "answer_must_contain",
+          "expected": "课程资料",
+          "actual": true,
+          "passed": true
+        },
+        {
+          "name": "answer_must_not_contain",
+          "expected": "量子引力",
+          "actual": false,
+          "passed": true
+        },
+        {
+          "name": "require_citations",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        }
+      ],
+      "result": {
+        "task_type": "knowledge_qa",
+        "status": "completed",
+        "risk_level": "low",
+        "answer": "根据当前课程资料：\n1. 根据任务要求明确机器人需要完成的动作、路径和工艺目标。\n2. 检查机器人本体、末端工具、工件位置和现场安全条件是否满足操作要求。\n3. 在手动模式下使用示教器移动机器人到目标点位，并记录关键位置。\n4. 根据作业要求设置运动方式、速度、工具坐标和工件坐标等参数。\n5. 按任务流程编写或补充程序逻辑，例如动作顺序、I/O 控制、循环或条件判断。\n6. 采用低速、单步或手动方式试运行程序，检查轨迹、姿态和设备配合是否正确。\n7. 根据试运行结果调整点位和程序内容，确认无误后再进行正式运行。\n\n资料来源：\n[1] 示教编程基本步骤\n[2] IO信号配置与示教编程基本步骤\n[3] 系统备份与恢复步骤",
+        "citation_count": 5,
+        "tool_count": 1
+      }
+    }
+  ],
+  "created_at": "2026-07-14T12:43:51.925878+00:00"
+}

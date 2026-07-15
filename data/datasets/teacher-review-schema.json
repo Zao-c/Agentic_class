@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "industrial-robot-course-teacher-review-audit-v1",
+  "title": "教师审核批次审计记录",
+  "type": "object",
+  "required": ["schema_version", "review_batch_id", "imported_at", "candidate", "review_input", "policy", "counts", "records"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "review_batch_id": {"type": "string", "minLength": 1},
+    "imported_at": {"type": "string", "format": "date-time"},
+    "candidate": {
+      "type": "object",
+      "required": ["relative_path", "sha256", "item_count"],
+      "properties": {
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "item_count": {"type": "integer", "minimum": 1}
+      }
+    },
+    "review_input": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item_id", "candidate_item_sha256", "decision", "decision_authority", "automation_decision", "reviewer_id", "reviewer_role", "reviewed_at", "human_review_attestation", "checks"],
+        "properties": {
+          "decision": {"enum": ["accepted", "rejected"]},
+          "decision_authority": {"const": "human_teacher"},
+          "automation_decision": {"const": false},
+          "human_review_attestation": {"const": true},
+          "reviewer_role": {"enum": ["teacher", "course_teacher"]}
+        }
+      }
+    }
+  }
+}

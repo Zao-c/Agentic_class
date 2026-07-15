@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "version": "2026-07-14",
+  "cases": [
+    {
+      "id": "TUTOR-001",
+      "knowledge_point_id": "kp_teach_programming_steps",
+      "answer": "先根据任务要求明确动作和路径及工艺目标，检查设备和现场安全条件；在手动模式下记录点位，设置运动方式、速度、工具坐标和工件坐标；编写程序逻辑，低速或单步试运行并检查轨迹，调整点位，确认无误后正式运行。",
+      "expected_score": 100,
+      "score_min": 100,
+      "score_max": 100,
+      "expected_mastery_status": "proficient"
+    },
+    {
+      "id": "TUTOR-002",
+      "knowledge_point_id": "kp_teach_programming_steps",
+      "answer": "在手动模式下记录点位，然后低速运行。",
+      "expected_score": 28.57,
+      "score_min": 28,
+      "score_max": 29,
+      "expected_mastery_status": "needs_review"
+    },
+    {
+      "id": "TUTOR-003",
+      "knowledge_point_id": "kp_io_signal_configuration",
+      "answer": "进入 I/O 配置界面，确认输入信号、输出信号和外部设备接线，设置名称、地址和类型；保存后在监控界面检查状态变化，最后在程序中调用信号。",
+      "expected_score": 100,
+      "score_min": 100,
+      "score_max": 100,
+      "expected_mastery_status": "proficient"
+    },
+    {
+      "id": "TUTOR-004",
+      "knowledge_point_id": "kp_system_restore",
+      "answer": "先随便找一个文件恢复即可。",
+      "expected_score": 0,
+      "score_min": 0,
+      "score_max": 0,
+      "expected_mastery_status": "needs_review"
+    }
+  ]
+}

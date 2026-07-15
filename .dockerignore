@@ -1,0 +1,13 @@
+.git
+.env
+.pytest_cache
+__pycache__
+*.pyc
+runtime
+reports/eval_*
+data/archive
+data/candidate
+data/excluded
+data/indexes
+data/processed
+data/active

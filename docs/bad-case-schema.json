@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://courseops.local/schemas/robot-tutor-bad-case-1.0.0.json",
+  "title": "Industrial Robot Tutor Bad Case Package",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "package_type",
+    "bad_case_id",
+    "source",
+    "input",
+    "original_result",
+    "assertions",
+    "configuration",
+    "trace",
+    "package_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "package_type": {"const": "courseops_bad_case"},
+    "bad_case_id": {"type": "string", "pattern": "^bad_"},
+    "source": {
+      "type": "object",
+      "required": ["request_id", "run_id", "reason", "tags", "status"]
+    },
+    "input": {
+      "type": "object",
+      "required": ["prior_messages", "message"],
+      "properties": {
+        "prior_messages": {"type": "array", "items": {"type": "string"}},
+        "message": {"type": "string"}
+      }
+    },
+    "original_result": {"type": "object"},
+    "feedback": {"type": ["object", "null"]},
+    "assertions": {
+      "type": "object",
+      "required": [
+        "must_not_fail",
+        "expected_task_type",
+        "answer_must_contain",
+        "answer_must_not_contain"
+      ]
+    },
+    "configuration": {"type": "object"},
+    "trace": {"type": "object"},
+    "package_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "additionalProperties": true
+}
