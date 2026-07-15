@@ -18,9 +18,29 @@
 | 工具参数真的参与执行 | Trace 同时保存 `proposed_plan`、`validated_plan`、`executed_plan`；伪造、越权和无来源参数会被删除、覆盖或拒绝 |
 | 三类任务工程闭环 | 问答、逐槽故障诊断、辅导出题/批改均进入 Run、SSE、Trace、反馈和回归链路 |
 | 数据治理而非造 Gold | [132 条候选快照聚合证据](data/datasets/candidate-course-qa-summary-v1.json)可公开核验，题目内容仍保持私有；只有具名教师审核、三项检查和哈希复验通过后才能冻结 Gold |
-| 可复现与可发布 | 当前 98 项本地测试通过、覆盖率 90.45%；公开 CI 会跳过 1 项私有候选快照哈希检查 |
+| 可复现与可发布 | 112 项本地测试通过、`app/` 覆盖率 90%；公开仓库包含 180 条确定性合成检索任务与隔离运行器 |
 
 > **证据边界：** 正式 RAG/诊断/辅导评测仍只有 12/7/4 条，结构化报警码只有 2 条品牌范围记录，真实学员 bad case 为 0，教师确认 Gold 为 0。单条 LLM 烟测只证明链路能运行；下表的 portable 数据使用公开合成语料和工程冻结题，也不代表生产准确率。
+
+## 180 条公开合成检索 Benchmark
+
+仓库提供 10 份完全原创的合成微型教材，以及 60 个语义族 × 3 种学生问法，共 180 条检索任务。数据按 family 切分为 train/dev/test = 108/36/36，避免同义改写跨集合泄漏；生成器固定 seed、版本、数据 SHA 和每份文档 SHA，可字节级重建。
+
+四种无需模型密钥的本地策略已经在隔离 SQLite 与仅合成语料上实测。完整聚合结果见 [公开报告](reports/rag_synthetic_180_local4_v1.json)。
+
+| 策略 | Recall@5 | MRR | NDCG@5 | Evidence Judge 准确率 | P50 / P95 ms |
+|---|---:|---:|---:|---:|---:|
+| BM25 | 0.9400 | 0.9619 | 0.9230 | 0.8889 | 9.29 / 12.37 |
+| TF-IDF/LSA | 0.9400 | 1.0000 | 0.9520 | 0.9000 | 11.41 / 13.54 |
+| Hybrid | 0.9400 | 0.9733 | 0.9339 | 0.8889 | 11.88 / 15.61 |
+| Hybrid + feature rerank | 0.9400 | 0.9933 | 0.9487 | 0.8889 | 14.35 / 18.03 |
+
+```powershell
+python scripts/generate_synthetic_retrieval_benchmark.py
+conda run -n rag-agent python scripts/run_synthetic_retrieval_benchmark.py
+```
+
+这组结果只证明检索与评测链路能在公开确定性夹具上复现。模拟学生不是实际学员，规则标签不是教师审核，数据被机器门禁标记为 `synthetic_engineering_only`，不能切换为 Gold 或进入三方案正式比较。七策略中的 BGE/Cross-Encoder 仍需本地已有的版本锁定模型缓存后用 `--include-neural` 单独运行，本轮没有下载模型或填造结果。
 
 ## 为什么它不是 PDF 聊天机器人
 

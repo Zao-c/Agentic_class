@@ -199,6 +199,22 @@ def main() -> None:
     from scripts.run_profile import load_profile
 
     load_profile(args.controlled_profile if needs_llm else "portable")
+    from scripts.agent_benchmark import (
+        BenchmarkValidationError,
+        FreeLLMAgentRunner,
+        WorkflowBenchmarkRunner,
+        assert_formal_dataset_eligible,
+        load_dataset,
+        run_benchmark,
+        write_report,
+    )
+
+    dataset = load_dataset(dataset_path)
+    if args.formal_comparison:
+        try:
+            assert_formal_dataset_eligible(dataset)
+        except BenchmarkValidationError as exc:
+            raise SystemExit(str(exc)) from None
     if needs_llm:
         key_env = os.environ.get("LLM_API_KEY_ENV", "OPENAI_API_KEY")
         if not os.environ.get(key_env):
@@ -215,15 +231,6 @@ def main() -> None:
     from app.storage import Store
     from app.tutoring import TutoringService
     from app.workflow import AgentWorkflow
-    from scripts.agent_benchmark import (
-        FreeLLMAgentRunner,
-        WorkflowBenchmarkRunner,
-        load_dataset,
-        run_benchmark,
-        write_report,
-    )
-
-    dataset = load_dataset(dataset_path)
     base_settings = Settings()
     if args.formal_comparison:
         base_settings = replace(base_settings, agentic_fallback_to_portable=False)

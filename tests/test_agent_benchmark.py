@@ -88,6 +88,37 @@ def test_frozen_datasets_are_explicitly_not_gold_and_have_unique_cases():
     assert any(case.fixture_documents for case in redteam.cases)
 
 
+def test_benchmark_json_schema_declares_matching_synthetic_and_gold_boundaries():
+    schema = json.loads(
+        (PROJECT_ROOT / "data" / "eval" / "agent_benchmark_schema_v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    properties = schema["properties"]
+    assert properties["status"]["enum"] == [
+        "synthetic_engineering_validation",
+        "frozen_engineering_validation",
+        "teacher_reviewed_gold",
+    ]
+    assert properties["data_origin"]["enum"] == [
+        "synthetic_public",
+        "engineering_source",
+        "real_course_data",
+    ]
+    assert properties["formal_comparison_eligible"]["default"] is False
+
+    conditional_contract = json.dumps(schema["allOf"], ensure_ascii=False)
+    for required_boundary in (
+        "synthetic_public",
+        "simulated",
+        "simulation",
+        "synthetic_engineering_only",
+        "verified_human_teacher",
+        "formal_gold",
+    ):
+        assert required_boundary in conditional_contract
+
+
 def test_scoring_and_multiple_run_aggregation_cover_required_metrics():
     case = _case()
     first = _observation(1)
@@ -136,6 +167,43 @@ def test_report_marks_non_gold_claim_boundary_and_repetitions():
     assert report["repetitions"] == 3
     assert report["runner_reports"][0]["metrics"]["sample_count"] == 3
     assert "不是 Gold Benchmark" in report["claim_boundary"]
+    assert report["dataset"]["metric_eligibility"] == "engineering_only"
+    assert report["dataset"]["formal_comparison_eligible"] is False
+
+
+def test_synthetic_report_preserves_simulation_identity_and_claim_boundary():
+    dataset = BenchmarkDataset(
+        schema_version="1.0.0",
+        dataset_id="synthetic-classroom-test",
+        version="v1",
+        status="synthetic_engineering_validation",
+        teacher_reviewed=False,
+        data_origin="synthetic_public",
+        actor_mode="simulated",
+        label_authority="simulation",
+        metric_eligibility="synthetic_engineering_only",
+        formal_comparison_eligible=False,
+        disclaimer="simulated classroom only",
+        cases=[_case()],
+    )
+
+    report = run_benchmark(dataset, [_FixedRunner()], repetitions=1)
+
+    assert report["formal_comparison"] is False
+    assert report["dataset"] == {
+        "id": "synthetic-classroom-test",
+        "version": "v1",
+        "status": "synthetic_engineering_validation",
+        "teacher_reviewed": False,
+        "data_origin": "synthetic_public",
+        "actor_mode": "simulated",
+        "label_authority": "simulation",
+        "metric_eligibility": "synthetic_engineering_only",
+        "formal_comparison_eligible": False,
+        "sha256": None,
+        "case_count": 1,
+    }
+    assert "模拟教师或学生不构成真实教师审核" in report["claim_boundary"]
 
 
 class _FreeProvider:

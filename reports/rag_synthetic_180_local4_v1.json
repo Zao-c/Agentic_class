@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "rag_synthetic_180_local4_v1",
+  "created_at": "2026-07-15T13:18:37.798738+00:00",
+  "status": "synthetic_engineering_validation",
+  "dataset": {
+    "dataset_id": "rag_synthetic_180_v1",
+    "version": "2026-07-15-v1",
+    "case_count": 180,
+    "family_count": 60,
+    "split_case_counts": {
+      "dev": 36,
+      "test": 36,
+      "train": 108
+    },
+    "dataset_sha256": "f60db92585815e91512607886bf3672e986245972e95f4b940da0f97e89b7b8f",
+    "teacher_reviewed": false,
+    "formal_comparison_eligible": false,
+    "metric_eligibility": "synthetic_engineering_only"
+  },
+  "corpus": {
+    "content_origin": "synthetic_public_original",
+    "document_count": 10,
+    "document_sha256": {
+      "01_coordinate_frames.md": "4bf11a47e11bd3a8384ae23b0ba316fcc6a8adb17fa182827d49b084dd01f730",
+      "02_safe_teaching.md": "b62fd757b2598fae021fc174831f0157ae4bee5787ec6d8cc692358af13e314e",
+      "03_motion_commands.md": "5fb79eda5d125839f55cec34f2ae1119bc4b8449ad8b3ce440d9c79383755079",
+      "04_io_signals.md": "fcfe06b077a210152be542637e9c81f5b935c06312b76be3a92643be605d2873",
+      "05_program_debugging.md": "d3662959520efc341936d7e758244be5d96268b30ba70530779b2c38074cf4be",
+      "06_backup_restore.md": "f4f5b7962bbdee5a55db5c34ebeb0883c57bff5d5bab3cd2d0d475acc350ac93",
+      "07_fault_intake.md": "497b5772a68fd9bd819a2ebcc29d7176c5b5f40bb60027d5741418cc1baffe5e",
+      "08_synthetic_alarms.md": "345828aa080f1433830b66841a00f621eebdb19bf344d2c1b67a3f44f5d756d3",
+      "09_learning_support.md": "fe0d22fe44c7adebac447052bea4516e0f82da8c5cd4d310bfd62f86e3cf59c1",
+      "10_governance_boundaries.md": "c130a383a77aaaaa57414e7893ff58905b69c548cacc5b436702501f351dbf1c"
+    },
+    "ingestion": {
+      "created": 10,
+      "duplicate": 0,
+      "failed": 0
+    }
+  },
+  "protocol": {
+    "top_k": 5,
+    "isolated_store": true,
+    "neural_local_files_only": true,
+    "strategies": [
+      "bm25",
+      "embedding",
+      "hybrid",
+      "hybrid_rerank"
+    ],
+    "runtime": {
+      "python": "3.11.15",
+      "platform": "Windows"
+    }
+  },
+  "results": {
+    "bm25": {
+      "case_count": 180,
+      "retrieval_nonempty_rate": 1.0,
+      "evidence_pass_rate": 0.9444,
+      "source_hit_at_5": 1.0,
+      "mrr": 0.9619,
+      "ndcg_at_5": 0.923,
+      "recall_at_5": 0.94,
+      "expected_point_coverage": 0.7156,
+      "evidence_judge_accuracy": 0.8889,
+      "latency_p50_ms": 9.29,
+      "latency_p95_ms": 12.37,
+      "prepare_ms": 66.73
+    },
+    "embedding": {
+      "case_count": 180,
+      "retrieval_nonempty_rate": 0.9944,
+      "evidence_pass_rate": 0.9222,
+      "source_hit_at_5": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_5": 0.952,
+      "recall_at_5": 0.94,
+      "expected_point_coverage": 0.7181,
+      "evidence_judge_accuracy": 0.9,
+      "latency_p50_ms": 11.41,
+      "latency_p95_ms": 13.54,
+      "prepare_ms": 9.39
+    },
+    "hybrid": {
+      "case_count": 180,
+      "retrieval_nonempty_rate": 1.0,
+      "evidence_pass_rate": 0.9444,
+      "source_hit_at_5": 1.0,
+      "mrr": 0.9733,
+      "ndcg_at_5": 0.9339,
+      "recall_at_5": 0.94,
+      "expected_point_coverage": 0.7172,
+      "evidence_judge_accuracy": 0.8889,
+      "latency_p50_ms": 11.88,
+      "latency_p95_ms": 15.61,
+      "prepare_ms": 7.54
+    },
+    "hybrid_rerank": {
+      "case_count": 180,
+      "retrieval_nonempty_rate": 1.0,
+      "evidence_pass_rate": 0.9444,
+      "source_hit_at_5": 1.0,
+      "mrr": 0.9933,
+      "ndcg_at_5": 0.9487,
+      "recall_at_5": 0.94,
+      "expected_point_coverage": 0.7164,
+      "evidence_judge_accuracy": 0.8889,
+      "latency_p50_ms": 14.35,
+      "latency_p95_ms": 18.03,
+      "prepare_ms": 7.4
+    }
+  },
+  "claim_boundary": "Public deterministic synthetic engineering data. It is not real student data, not human teacher review, not Gold, and not evidence of production accuracy.",
+  "publication_note": "Aggregate results are engineering evidence over deterministic simulated student questions and original synthetic documents. They are not Gold metrics and do not measure real-course or production accuracy."
+}

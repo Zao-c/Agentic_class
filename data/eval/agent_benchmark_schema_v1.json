@@ -9,8 +9,31 @@
     "schema_version": {"const": "1.0.0"},
     "dataset_id": {"type": "string", "minLength": 1},
     "version": {"type": "string", "minLength": 1},
-    "status": {"enum": ["frozen_engineering_validation", "teacher_reviewed_gold"]},
+    "status": {
+      "enum": [
+        "synthetic_engineering_validation",
+        "frozen_engineering_validation",
+        "teacher_reviewed_gold"
+      ]
+    },
     "teacher_reviewed": {"type": "boolean"},
+    "data_origin": {
+      "enum": ["synthetic_public", "engineering_source", "real_course_data"],
+      "default": "engineering_source"
+    },
+    "actor_mode": {
+      "enum": ["simulated", "human_or_unknown"],
+      "default": "human_or_unknown"
+    },
+    "label_authority": {
+      "enum": ["simulation", "engineering_spec", "verified_human_teacher"],
+      "default": "engineering_spec"
+    },
+    "metric_eligibility": {
+      "enum": ["synthetic_engineering_only", "engineering_only", "formal_gold"],
+      "default": "engineering_only"
+    },
+    "formal_comparison_eligible": {"type": "boolean", "default": false},
     "disclaimer": {"type": "string", "minLength": 1},
     "cases": {
       "type": "array",
@@ -58,5 +81,81 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "anyOf": [
+          {"required": ["status"], "properties": {"status": {"const": "synthetic_engineering_validation"}}},
+          {"required": ["data_origin"], "properties": {"data_origin": {"const": "synthetic_public"}}},
+          {"required": ["actor_mode"], "properties": {"actor_mode": {"const": "simulated"}}},
+          {"required": ["label_authority"], "properties": {"label_authority": {"const": "simulation"}}},
+          {"required": ["metric_eligibility"], "properties": {"metric_eligibility": {"const": "synthetic_engineering_only"}}}
+        ]
+      },
+      "then": {
+        "required": [
+          "data_origin",
+          "actor_mode",
+          "label_authority",
+          "metric_eligibility",
+          "formal_comparison_eligible"
+        ],
+        "properties": {
+          "status": {"const": "synthetic_engineering_validation"},
+          "teacher_reviewed": {"const": false},
+          "data_origin": {"const": "synthetic_public"},
+          "actor_mode": {"const": "simulated"},
+          "label_authority": {"const": "simulation"},
+          "metric_eligibility": {"const": "synthetic_engineering_only"},
+          "formal_comparison_eligible": {"const": false}
+        }
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {"required": ["status"], "properties": {"status": {"const": "teacher_reviewed_gold"}}},
+          {"required": ["teacher_reviewed"], "properties": {"teacher_reviewed": {"const": true}}},
+          {"required": ["label_authority"], "properties": {"label_authority": {"const": "verified_human_teacher"}}},
+          {"required": ["metric_eligibility"], "properties": {"metric_eligibility": {"const": "formal_gold"}}},
+          {"required": ["formal_comparison_eligible"], "properties": {"formal_comparison_eligible": {"const": true}}}
+        ]
+      },
+      "then": {
+        "required": [
+          "data_origin",
+          "actor_mode",
+          "label_authority",
+          "metric_eligibility",
+          "formal_comparison_eligible"
+        ],
+        "properties": {
+          "status": {"const": "teacher_reviewed_gold"},
+          "teacher_reviewed": {"const": true},
+          "data_origin": {"const": "real_course_data"},
+          "actor_mode": {"const": "human_or_unknown"},
+          "label_authority": {"const": "verified_human_teacher"},
+          "metric_eligibility": {"const": "formal_gold"},
+          "formal_comparison_eligible": {"const": true}
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["status"],
+        "properties": {"status": {"const": "frozen_engineering_validation"}}
+      },
+      "then": {
+        "properties": {
+          "teacher_reviewed": {"const": false},
+          "data_origin": {"enum": ["engineering_source", "real_course_data"]},
+          "actor_mode": {"const": "human_or_unknown"},
+          "label_authority": {"const": "engineering_spec"},
+          "metric_eligibility": {"const": "engineering_only"},
+          "formal_comparison_eligible": {"const": false}
+        }
+      }
+    }
+  ]
 }

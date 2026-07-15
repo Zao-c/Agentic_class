@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "rag_synthetic_180_v1",
+  "version": "2026-07-15-v1",
+  "status": "synthetic_engineering_validation",
+  "simulation": true,
+  "content_origin": "synthetic_public_original",
+  "actor_role": "synthetic_student",
+  "label_authority": "deterministic_synthetic_spec",
+  "simulated_teacher_role": "expected_label_author_only",
+  "teacher_reviewed": false,
+  "human_review_attestation": false,
+  "metric_eligibility": "synthetic_engineering_only",
+  "formal_comparison_eligible": false,
+  "case_count": 180,
+  "family_count": 60,
+  "variants_per_family": 3,
+  "split_case_counts": {
+    "dev": 36,
+    "test": 36,
+    "train": 108
+  },
+  "category_case_counts": {
+    "Prompt 注入": 12,
+    "坐标系": 12,
+    "型号冲突": 6,
+    "指令区别": 15,
+    "操作流程": 33,
+    "故障诊断": 30,
+    "术语解释": 30,
+    "资料缺失": 12,
+    "跨文档问题": 30
+  },
+  "source_document_count": 10,
+  "generation": {
+    "generator": "scripts/generate_synthetic_retrieval_benchmark.py",
+    "generator_version": "1.0.0",
+    "seed": 20260715,
+    "uses_llm": false,
+    "blueprint_sha256": "0d7c1a817b0ce6647e73f913b2284b0c77fa72d442fb1e0b52d5d84983d7097c"
+  },
+  "artifacts": {
+    "dataset_sha256": "f60db92585815e91512607886bf3672e986245972e95f4b940da0f97e89b7b8f",
+    "source_sha256": {
+      "01_coordinate_frames.md": "4bf11a47e11bd3a8384ae23b0ba316fcc6a8adb17fa182827d49b084dd01f730",
+      "02_safe_teaching.md": "b62fd757b2598fae021fc174831f0157ae4bee5787ec6d8cc692358af13e314e",
+      "03_motion_commands.md": "5fb79eda5d125839f55cec34f2ae1119bc4b8449ad8b3ce440d9c79383755079",
+      "04_io_signals.md": "fcfe06b077a210152be542637e9c81f5b935c06312b76be3a92643be605d2873",
+      "05_program_debugging.md": "d3662959520efc341936d7e758244be5d96268b30ba70530779b2c38074cf4be",
+      "06_backup_restore.md": "f4f5b7962bbdee5a55db5c34ebeb0883c57bff5d5bab3cd2d0d475acc350ac93",
+      "07_fault_intake.md": "497b5772a68fd9bd819a2ebcc29d7176c5b5f40bb60027d5741418cc1baffe5e",
+      "08_synthetic_alarms.md": "345828aa080f1433830b66841a00f621eebdb19bf344d2c1b67a3f44f5d756d3",
+      "09_learning_support.md": "fe0d22fe44c7adebac447052bea4516e0f82da8c5cd4d310bfd62f86e3cf59c1",
+      "10_governance_boundaries.md": "c130a383a77aaaaa57414e7893ff58905b69c548cacc5b436702501f351dbf1c"
+    }
+  },
+  "claim_boundary": "Public deterministic synthetic engineering data. It is not real student data, not human teacher review, not Gold, and not evidence of production accuracy."
+}

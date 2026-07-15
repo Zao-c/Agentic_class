@@ -222,6 +222,40 @@ def _dataset() -> BenchmarkDataset:
     )
 
 
+def _synthetic_dataset() -> BenchmarkDataset:
+    return BenchmarkDataset(
+        schema_version="1.0.0",
+        dataset_id="synthetic-classroom-test",
+        version="v1-test",
+        status="synthetic_engineering_validation",
+        teacher_reviewed=False,
+        data_origin="synthetic_public",
+        actor_mode="simulated",
+        label_authority="simulation",
+        metric_eligibility="synthetic_engineering_only",
+        formal_comparison_eligible=False,
+        disclaimer="simulated teacher and student; engineering use only",
+        cases=[_case()],
+    )
+
+
+def _gold_dataset() -> BenchmarkDataset:
+    return BenchmarkDataset(
+        schema_version="1.0.0",
+        dataset_id="verified-gold-test",
+        version="v1-test",
+        status="teacher_reviewed_gold",
+        teacher_reviewed=True,
+        data_origin="real_course_data",
+        actor_mode="human_or_unknown",
+        label_authority="verified_human_teacher",
+        metric_eligibility="formal_gold",
+        formal_comparison_eligible=True,
+        disclaimer="verified Gold test fixture",
+        cases=[_case()],
+    )
+
+
 def _three_failed_runners():
     return [
         _FailedRunner("portable"),
@@ -230,10 +264,22 @@ def _three_failed_runners():
     ]
 
 
-def test_formal_comparison_requires_all_three_runners_and_three_repetitions():
+def test_formal_comparison_rejects_engineering_and_synthetic_before_running_cases():
+    runner = _FailedRunner("portable")
+    for dataset in (_dataset(), _synthetic_dataset()):
+        with pytest.raises(BenchmarkValidationError, match="verified, non-synthetic"):
+            run_benchmark(
+                dataset,
+                [runner],
+                repetitions=3,
+                formal_comparison=True,
+            )
+
+
+def test_formal_gold_requires_all_three_runners_and_three_repetitions():
     with pytest.raises(BenchmarkValidationError):
         run_benchmark(
-            _dataset(),
+            _gold_dataset(),
             [_FailedRunner("portable")],
             repetitions=3,
             formal_comparison=True,
@@ -241,11 +287,38 @@ def test_formal_comparison_requires_all_three_runners_and_three_repetitions():
 
     with pytest.raises(BenchmarkValidationError):
         run_benchmark(
-            _dataset(),
+            _gold_dataset(),
             _three_failed_runners(),
             repetitions=2,
             formal_comparison=True,
         )
+
+
+@pytest.mark.parametrize(
+    ("updates", "message"),
+    [
+        ({"teacher_reviewed": True}, "simulation-only"),
+        ({"status": "teacher_reviewed_gold"}, "simulation-only"),
+        ({"metric_eligibility": "formal_gold"}, "simulation-only"),
+        ({"formal_comparison_eligible": True}, "simulation-only"),
+    ],
+)
+def test_synthetic_identity_cannot_be_promoted_by_flipping_gold_fields(updates, message):
+    payload = _synthetic_dataset().model_dump(mode="json")
+    payload.update(updates)
+
+    with pytest.raises(ValueError, match=message):
+        BenchmarkDataset.model_validate(payload)
+
+
+def test_legacy_engineering_dataset_defaults_remain_non_formal():
+    dataset = _dataset()
+
+    assert dataset.data_origin == "engineering_source"
+    assert dataset.actor_mode == "human_or_unknown"
+    assert dataset.label_authority == "engineering_spec"
+    assert dataset.metric_eligibility == "engineering_only"
+    assert dataset.formal_comparison_eligible is False
 
 
 def test_all_failed_formal_run_is_not_completed_and_preserves_metadata():
@@ -255,7 +328,7 @@ def test_all_failed_formal_run_is_not_completed_and_preserves_metadata():
         "artifacts": {"knowledge_sha256": "knowledge-hash", "alarm_sha256": "alarm-hash"},
     }
     report = run_benchmark(
-        _dataset(),
+        _gold_dataset(),
         _three_failed_runners(),
         repetitions=3,
         formal_comparison=True,
@@ -263,6 +336,9 @@ def test_all_failed_formal_run_is_not_completed_and_preserves_metadata():
     )
 
     assert report["experiment_status"] != "completed"
+    assert report["formal_comparison"] is True
+    assert report["dataset"]["status"] == "teacher_reviewed_gold"
+    assert report["dataset"]["metric_eligibility"] == "formal_gold"
     assert report["experiment_metadata"] == metadata
 
 
@@ -280,6 +356,30 @@ def test_cli_rejects_partial_formal_comparison_before_requesting_a_key(monkeypat
         ],
     )
     with pytest.raises(SystemExit, match="requires --runner all"):
+        benchmark_main()
+
+
+def test_cli_rejects_engineering_formal_dataset_before_requesting_a_key(monkeypatch):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_agent_benchmark.py",
+            "--formal-comparison",
+            "--runner",
+            "all",
+            "--repetitions",
+            "3",
+            "--dataset",
+            "agent_benchmark_frozen_v0.1.json",
+        ],
+    )
+    monkeypatch.setattr(
+        "scripts.run_agent_benchmark.getpass.getpass",
+        lambda *_args, **_kwargs: pytest.fail("API key prompt must not run for non-Gold data"),
+    )
+
+    with pytest.raises(SystemExit, match="verified, non-synthetic"):
         benchmark_main()
 
 

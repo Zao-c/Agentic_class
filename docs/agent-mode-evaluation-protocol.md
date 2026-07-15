@@ -14,6 +14,10 @@
 
 正式比较只使用 `data/datasets/gold/` 与固定版本评测集。`candidate/`、验收造数和自动合成场景必须单独报告，不得混入主指标。每份报告记录 Agent profile、检索 profile、模型、供应商、base URL 类别、温度、Prompt/Schema 版本、数据集哈希和运行时间。
 
+`rag_synthetic_180_v1.csv` 是公开合成工程集：模拟学生问法，标签由确定性规格生成。其 manifest 强制 `teacher_reviewed=false`、`metric_eligibility=synthetic_engineering_only`、`formal_comparison_eligible=false`。Benchmark 数据模型会拒绝把 synthetic/模拟角色与教师 Gold 字段组合，也会在启动三 runner 或请求模型密钥之前拒绝非 Gold 的 `--formal-comparison`。当前字段校验是仓库内治理门禁，不等同于学校 SSO、数字签名或外部教师身份认证。
+
+该集合的四种本地检索策略可通过 `scripts/run_synthetic_retrieval_benchmark.py` 在隔离数据库中复现；公开报告只含聚合指标和哈希，不含本机绝对路径或原始问题。它用于扩大工程证据和发现检索失败，不用于宣称真实课堂准确率。
+
 当前状态：portable 已有真实 HTTP 评测；`agentic-online` 已完成 DeepSeek V4 Flash 单条真实 HTTP 端到端烟测；`agentic-quality` 已完成 DeepSeek + BGE + Cross-Encoder 同次组合烟测。报告分别为 `reports/agentic_http_smoke_20260714T160059Z.json` 和 `reports/agentic_http_smoke_20260714T160740Z.json`。单条烟测不能替代冻结任务集的批量对比；自由 Agent 对照、P95 和三方案成本/安全统计仍未执行。
 
 ## 可执行统一框架

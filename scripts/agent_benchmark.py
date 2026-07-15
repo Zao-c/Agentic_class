@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Literal, Optional, Protocol, Sequence, Type
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.decision_provider import DecisionProvider
 from app.diagnostic_evaluation import contains_unsafe_advice
@@ -87,10 +87,81 @@ class BenchmarkDataset(BaseModel):
     schema_version: Literal["1.0.0"]
     dataset_id: str
     version: str
-    status: Literal["frozen_engineering_validation", "teacher_reviewed_gold"]
+    status: Literal[
+        "synthetic_engineering_validation",
+        "frozen_engineering_validation",
+        "teacher_reviewed_gold",
+    ]
     teacher_reviewed: bool
+    data_origin: Literal["synthetic_public", "engineering_source", "real_course_data"] = (
+        "engineering_source"
+    )
+    actor_mode: Literal["simulated", "human_or_unknown"] = "human_or_unknown"
+    label_authority: Literal[
+        "simulation", "engineering_spec", "verified_human_teacher"
+    ] = "engineering_spec"
+    metric_eligibility: Literal[
+        "synthetic_engineering_only", "engineering_only", "formal_gold"
+    ] = "engineering_only"
+    formal_comparison_eligible: bool = False
     disclaimer: str
     cases: List[BenchmarkCase] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def enforce_governance_boundary(self) -> "BenchmarkDataset":
+        synthetic = (
+            self.status == "synthetic_engineering_validation"
+            or self.data_origin == "synthetic_public"
+            or self.actor_mode == "simulated"
+            or self.label_authority == "simulation"
+        )
+        if synthetic:
+            expected = (
+                self.status == "synthetic_engineering_validation"
+                and self.data_origin == "synthetic_public"
+                and self.actor_mode == "simulated"
+                and self.label_authority == "simulation"
+                and self.metric_eligibility == "synthetic_engineering_only"
+                and not self.teacher_reviewed
+                and not self.formal_comparison_eligible
+            )
+            if not expected:
+                raise ValueError("synthetic benchmark identity fields must remain simulation-only")
+        if self.status == "teacher_reviewed_gold" or self.teacher_reviewed:
+            verified_gold = (
+                self.status == "teacher_reviewed_gold"
+                and self.teacher_reviewed
+                and self.data_origin == "real_course_data"
+                and self.actor_mode == "human_or_unknown"
+                and self.label_authority == "verified_human_teacher"
+                and self.metric_eligibility == "formal_gold"
+                and self.formal_comparison_eligible
+            )
+            if not verified_gold:
+                raise ValueError("Gold benchmark requires verified non-synthetic governance fields")
+        if self.status == "frozen_engineering_validation":
+            engineering_only = (
+                not self.teacher_reviewed
+                and self.data_origin in {"engineering_source", "real_course_data"}
+                and self.actor_mode == "human_or_unknown"
+                and self.label_authority == "engineering_spec"
+                and self.metric_eligibility == "engineering_only"
+                and not self.formal_comparison_eligible
+            )
+            if not engineering_only:
+                raise ValueError(
+                    "engineering benchmark identity fields cannot claim simulation or Gold authority"
+                )
+        if self.metric_eligibility == "formal_gold" and self.status != "teacher_reviewed_gold":
+            raise ValueError("formal Gold metrics require teacher_reviewed_gold status")
+        if (
+            self.label_authority == "verified_human_teacher"
+            and self.status != "teacher_reviewed_gold"
+        ):
+            raise ValueError("verified human-teacher labels require teacher_reviewed_gold status")
+        if self.formal_comparison_eligible and self.status != "teacher_reviewed_gold":
+            raise ValueError("only verified teacher-reviewed Gold may be formal-comparison eligible")
+        return self
 
     def assert_publishable_claims(self) -> None:
         ids = [case.id for case in self.cases]
@@ -349,6 +420,22 @@ def aggregate_runner(
     }
 
 
+def assert_formal_dataset_eligible(dataset: BenchmarkDataset) -> None:
+    """Reject non-Gold data before runners, model providers, or secrets are used."""
+    if not (
+        dataset.status == "teacher_reviewed_gold"
+        and dataset.teacher_reviewed
+        and dataset.data_origin == "real_course_data"
+        and dataset.actor_mode == "human_or_unknown"
+        and dataset.label_authority == "verified_human_teacher"
+        and dataset.metric_eligibility == "formal_gold"
+        and dataset.formal_comparison_eligible
+    ):
+        raise BenchmarkValidationError(
+            "formal comparison requires verified, non-synthetic teacher-reviewed Gold"
+        )
+
+
 def run_benchmark(
     dataset: BenchmarkDataset,
     runners: Sequence[BenchmarkRunner],
@@ -364,6 +451,7 @@ def run_benchmark(
     if len(runner_names) != len(set(runner_names)):
         raise BenchmarkValidationError("benchmark runner names must be unique")
     if formal_comparison:
+        assert_formal_dataset_eligible(dataset)
         if set(runner_names) != FORMAL_RUNNERS:
             raise BenchmarkValidationError(
                 "formal comparison requires portable, free-llm-agent and controlled-langgraph"
@@ -421,6 +509,11 @@ def run_benchmark(
             "version": dataset.version,
             "status": dataset.status,
             "teacher_reviewed": dataset.teacher_reviewed,
+            "data_origin": dataset.data_origin,
+            "actor_mode": dataset.actor_mode,
+            "label_authority": dataset.label_authority,
+            "metric_eligibility": dataset.metric_eligibility,
+            "formal_comparison_eligible": dataset.formal_comparison_eligible,
             "sha256": dataset_sha256(dataset_path) if dataset_path else None,
             "case_count": len(dataset.cases),
         },
@@ -429,9 +522,14 @@ def run_benchmark(
         "runner_reports": reports,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "claim_boundary": (
-            "工程验证结果，不是 Gold Benchmark；不得用于准确率宣传。"
-            if not dataset.teacher_reviewed
-            else "教师审核 Gold Benchmark。"
+            "合成模拟课堂工程验证结果；模拟教师或学生不构成真实教师审核，"
+            "不得用于正式准确率或 Gold Benchmark 宣传。"
+            if dataset.status == "synthetic_engineering_validation"
+            else (
+                "教师审核 Gold Benchmark。"
+                if dataset.status == "teacher_reviewed_gold"
+                else "工程验证结果，不是 Gold Benchmark；不得用于准确率宣传。"
+            )
         ),
     }
 
