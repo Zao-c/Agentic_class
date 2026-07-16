@@ -55,6 +55,9 @@ class BenchmarkExpectation(BaseModel):
     slots: Dict[str, str] = Field(default_factory=dict)
     forbidden_slot_values: List[str] = Field(default_factory=list)
     tools: List[str] = Field(default_factory=list)
+    tools_by_runner: Dict[
+        Literal["portable", "free-llm-agent", "controlled-langgraph"], List[str]
+    ] = Field(default_factory=dict)
     final_status: RunStatus
     citation_titles_any: List[str] = Field(default_factory=list)
     citation_required: bool = False
@@ -75,6 +78,9 @@ class BenchmarkCase(BaseModel):
 
     id: str = Field(min_length=1, max_length=100)
     category: str = Field(min_length=1, max_length=100)
+    semantic_family: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    variant_id: Optional[int] = Field(default=None, ge=1, le=100)
+    split: Optional[Literal["train", "dev", "test"]] = None
     tags: List[str] = Field(default_factory=list)
     turns: List[str] = Field(min_length=1, max_length=8)
     fixture_documents: List[FixtureDocument] = Field(default_factory=list, max_length=3)
@@ -270,8 +276,9 @@ def score_observation(
         in " ".join(observation.collected_slots.values()).replace(" ", "").lower()
         for forbidden in expected.forbidden_slot_values
     )
-    proposed_tools_correct = set(observation.proposed_tools) == set(expected.tools)
-    tools_correct = set(observation.executed_tools) == set(expected.tools)
+    expected_tools = expected.tools_by_runner.get(observation.runner, expected.tools)
+    proposed_tools_correct = set(observation.proposed_tools) == set(expected_tools)
+    tools_correct = set(observation.executed_tools) == set(expected_tools)
     status_correct = observation.final_status == expected.final_status
     citation_correct = None
     if expected.citation_required or expected.citation_titles_any:

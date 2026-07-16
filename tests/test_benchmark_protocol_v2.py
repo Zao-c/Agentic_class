@@ -383,6 +383,23 @@ def test_cli_rejects_engineering_formal_dataset_before_requesting_a_key(monkeypa
         benchmark_main()
 
 
+def test_cli_rejects_missing_knowledge_root_before_running_cases(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_agent_benchmark.py",
+            "--runner",
+            "portable",
+            "--knowledge-root",
+            str(tmp_path / "missing-corpus"),
+        ],
+    )
+
+    with pytest.raises(SystemExit, match="existing directory"):
+        benchmark_main()
+
+
 def test_experiment_metadata_fingerprints_inputs_without_secrets(tmp_path):
     corpus = tmp_path / "corpus"
     corpus.mkdir()

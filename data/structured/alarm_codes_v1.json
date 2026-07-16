@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
-  "scope": "ABB 课程设备；原始课程资料未标明具体机器人型号",
+  "scope": "ABB IRB 120 / IRC5 课程参考配置；现场控制器变体与 RobotWare 精确版本仍须核对",
   "records": [
     {
       "equipment_brand": "ABB",
       "equipment_models": ["*"],
-      "controller_versions": [],
+      "controller_versions": ["IRC5"],
       "code": "10036",
       "title": "转数计数器需要更新",
-      "meaning": "课程资料将报警 10036 解释为转数计数器需要更新。该状态涉及机器人轴位置与校准数据，不能仅凭报警编号直接执行校准。",
+      "meaning": "ABB IRC5 故障诊断手册将事件 10036 说明为转数计数器未更新。该状态涉及机器人轴位置与校准数据；具体机器人型号、控制器变体和 RobotWare 版本未确认时，不能据此执行校准或更新。",
       "likely_causes": [
         "转数计数器数据丢失或被修改",
         "电机与串行测量链路曾断开",
@@ -17,7 +17,7 @@
       ],
       "safe_checks": [
         "记录示教器上的完整报警原文、发生时间和当前各轴状态",
-        "确认设备品牌、完整型号和控制器版本",
+        "确认设备品牌、完整型号、控制器变体和 RobotWare 精确版本",
         "核对近期是否发生过断电搬动、测量链路维修或校准数据变更"
       ],
       "forbidden_actions": [
@@ -26,40 +26,40 @@
         "不要拆开控制柜或测量链路"
       ],
       "risk_level": "high",
-      "source_title": "工业机器人操作与编程-整体课件整理版",
-      "source_locator": "机器人系统数据与转数计数器",
-      "source_excerpt": "课程资料列出系统提示 10036、转数计数器数据丢失或修改、测量链路断开以及断电后关节移动等场景。",
-      "version": "course-extract-2026-07-14",
-      "effective_date": "2026-07-14",
+      "source_title": "ABB Operating manual - Trouble shooting, IRC5",
+      "source_locator": "ABB 3HAC020738-001 Revision K，印刷页 81，事件 10036；适用机器人型号及 RobotWare 版本待现场确认",
+      "source_excerpt": "ABB 官方故障诊断手册在印刷页 81 收录事件 10036。此结构化记录仅支持识别、信息核对和高风险转交，不授权执行转数计数器更新。",
+      "version": "3HAC020738-001-rev-K",
+      "effective_date": null,
       "review_status": "source_verified",
       "access_scope": "public",
       "is_active": true
     },
     {
       "equipment_brand": "ABB",
-      "equipment_models": ["*"],
-      "controller_versions": [],
+      "equipment_models": ["IRB120"],
+      "controller_versions": ["IRC5", "IRC5 Compact"],
       "code": "38213",
       "title": "机器人电池电量低",
-      "meaning": "课程资料将报警 38213 解释为机器人电池电量低。电池用于控制器断电期间保持机器人相关数据。",
+      "meaning": "ABB IRB 120 产品手册在事件 38213 中说明机器人电池电量低。该证据适用于 IRB 120；现场控制器变体和 RobotWare 精确版本仍须核对。",
       "likely_causes": [
         "机器人备份电池电量低"
       ],
       "safe_checks": [
         "记录示教器上的完整报警原文和发生时间",
         "查看事件日志，确认是否持续出现相同电池低电量提示",
-        "确认设备完整型号和控制器版本后交由教师安排后续处理"
+        "确认设备为 IRB 120，并记录控制器变体与 RobotWare 精确版本后交由教师或授权人员处理"
       ],
       "forbidden_actions": [
         "不要自行打开控制柜或更换电池",
         "不要清除报警后继续忽略重复出现的低电量提示"
       ],
       "risk_level": "medium",
-      "source_title": "工业机器人操作与编程-整体课件整理版",
-      "source_locator": "机器人电池",
-      "source_excerpt": "课程资料说明机器人电池用于断电期间保持数据，并列出 38213 电池电量低提示。",
-      "version": "course-extract-2026-07-14",
-      "effective_date": "2026-07-14",
+      "source_title": "ABB Product manual - IRB 120",
+      "source_locator": "ABB 3HAC035728-001 Revision W，印刷页 84，事件 38213",
+      "source_excerpt": "ABB 官方 IRB 120 产品手册在印刷页 84 收录事件 38213 Battery charge low。本记录为原创事实摘要，不复制手册正文。",
+      "version": "3HAC035728-001-rev-W",
+      "effective_date": null,
       "review_status": "source_verified",
       "access_scope": "public",
       "is_active": true

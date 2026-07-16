@@ -144,6 +144,27 @@ def test_scoring_and_multiple_run_aggregation_cover_required_metrics():
     assert metrics["latency_p95_ms"] == 101.95
 
 
+def test_scoring_uses_runner_specific_executable_tool_contract():
+    payload = _case().model_dump(mode="json")
+    payload["expected"]["tools"] = [
+        "lookup_error_code",
+        "manual_retrieval",
+        "check_safety_constraint",
+        "record_diagnostic_state",
+    ]
+    payload["expected"]["tools_by_runner"] = {
+        "free-llm-agent": ["lookup_error_code", "manual_retrieval"]
+    }
+    case = BenchmarkCase.model_validate(payload)
+    observation = _observation()
+    observation.runner = "free-llm-agent"
+    observation.executed_tools = ["lookup_error_code", "manual_retrieval"]
+
+    scores = score_observation(case, observation)
+
+    assert scores["tools_correct"] is True
+
+
 class _FixedRunner:
     name = "portable"
 

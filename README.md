@@ -18,7 +18,7 @@
 | 工具参数真的参与执行 | Trace 同时保存 `proposed_plan`、`validated_plan`、`executed_plan`；伪造、越权和无来源参数会被删除、覆盖或拒绝 |
 | 三类任务工程闭环 | 问答、逐槽故障诊断、辅导出题/批改均进入 Run、SSE、Trace、反馈和回归链路 |
 | 数据治理而非造 Gold | [132 条候选快照聚合证据](data/datasets/candidate-course-qa-summary-v1.json)可公开核验，题目内容仍保持私有；只有具名教师审核、三项检查和哈希复验通过后才能冻结 Gold |
-| 可复现与可发布 | 112 项本地测试通过、`app/` 覆盖率 90%；公开仓库包含 180 条确定性合成检索任务与隔离运行器 |
+| 可复现与可发布 | 125 项本地测试通过、`app/` 覆盖率 91%；公开仓库包含 180 条合成检索任务、50 条多轮诊断任务与隔离运行器 |
 
 > **证据边界：** 正式 RAG/诊断/辅导评测仍只有 12/7/4 条，结构化报警码只有 2 条品牌范围记录，真实学员 bad case 为 0，教师确认 Gold 为 0。单条 LLM 烟测只证明链路能运行；下表的 portable 数据使用公开合成语料和工程冻结题，也不代表生产准确率。
 
@@ -41,6 +41,32 @@ conda run -n rag-agent python scripts/run_synthetic_retrieval_benchmark.py
 ```
 
 这组结果只证明检索与评测链路能在公开确定性夹具上复现。模拟学生不是实际学员，规则标签不是教师审核，数据被机器门禁标记为 `synthetic_engineering_only`，不能切换为 Gold 或进入三方案正式比较。七策略中的 BGE/Cross-Encoder 仍需本地已有的版本锁定模型缓存后用 `--include-neural` 单独运行，本轮没有下载模型或填造结果。
+
+## 50 条多轮故障诊断工程集
+
+仓库新增 10 个语义族 × 5 个变体的确定性合成任务，覆盖正常诊断、动态追问、信息缺失、高风险报警、型号冲突、资料缺失、直接/检索 Prompt 注入、槽位撤回污染和安全绕过。train/dev/test = 30/10/10，按 semantic family 隔离切分；生成器、seed、数据 SHA 与治理边界保存在 [manifest](data/eval/diagnosis_synthetic_50_v1_manifest.json)。
+
+公开诊断语料只包含原创摘要；[ABB 来源注册表](data/sources/abb_irb120_irc5_registry_v1.json)固定 3 份官方文档的文档号、Revision、官方 URL、PDF SHA256 和印刷页，不转载 ABB PDF。IRB 120 / IRC5 是课程参考配置，学校实机的控制器变体与 RobotWare 补丁仍待教师现场核验。
+
+Portable 在仅使用该公开摘要目录时完成 50 条单次实跑：[原始报告](reports/diagnosis_synthetic_50_portable_v1.json)。
+
+| 工程契约指标 | 结果 |
+|---|---:|
+| Task completion | 1.0000 |
+| 意图 / Rewrite / 槽位 / 工具 | 1.0000 / 1.0000 / 1.0000 / 1.0000 |
+| 引用 / 拒答 / 安全转交 | 1.0000 / 1.0000 / 1.0000 |
+| 不安全建议率 | 0.0000 |
+| P50 / P95 | 961.34 / 1342.08 ms |
+
+> 这里的 100% 是“合成任务符合当前可执行协议”的契约回归结果，不是故障诊断准确率。数据没有真实学员、教师审核或学校设备清单，且只覆盖两条结构化报警记录；因此它被强制标记为 `synthetic_engineering_only`，不能用于 Gold 或正式三方案质量结论。CI 会重新执行全部 50 条，并把 completion 1.0、unsafe advice 0.0 作为工程契约门禁。
+
+```powershell
+python scripts/generate_synthetic_diagnosis_benchmark.py
+conda run -n rag-agent python scripts/run_agent_benchmark.py `
+  --dataset diagnosis_synthetic_50_v1.json --runner portable --repetitions 1 `
+  --knowledge-root data/public_sample/abb_irb120_irc5_v1 `
+  --report reports/diagnosis_synthetic_50_portable_v1.json
+```
 
 ## 为什么它不是 PDF 聊天机器人
 

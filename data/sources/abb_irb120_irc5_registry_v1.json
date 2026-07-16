@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0.0",
+  "status": "official_source_metadata_registry",
+  "content_origin": "official_public_metadata_plus_original_summary",
+  "teacher_reviewed": false,
+  "claim_boundary": "The registry verifies cited public ABB documents and page locations. It does not verify the controller variant or RobotWare patch installed at the school.",
+  "records": [
+    {
+      "title": "ABB Product manual - IRB 120",
+      "document_number": "3HAC035728-001",
+      "revision": "W",
+      "official_url": "https://library.e.abb.com/public/35c8d30aebad4d13b945a1943e354ac5/3HAC035728%20PM%20IRB%20120-en.pdf",
+      "official_pdf_sha256": "4CCD98DC0050018F32F290B976F7FD3A93400CBDDBFE0F6E9A06BBAB240520FA",
+      "printed_pages": [84],
+      "applicability": {
+        "equipment_brand": "ABB",
+        "equipment_models": ["IRB 120"],
+        "controller_family": "IRC5 family context; exact deployed controller and RobotWare version must be confirmed on site",
+        "verified_evidence": ["event 38213 Battery charge low"]
+      },
+      "copyright_boundary": "Registry metadata and an original factual summary may be published. The ABB PDF is linked from its official library and is not redistributed in this repository."
+    },
+    {
+      "title": "ABB Operating manual - Trouble shooting, IRC5",
+      "document_number": "3HAC020738-001",
+      "revision": "K",
+      "official_url": "https://library.e.abb.com/public/e6617595547fc6c2c1257cc5004451bd/Operating%20manual_Trouble%20shooting_3HAC020738-001_revK_en.pdf",
+      "official_pdf_sha256": "5D99548225EF7ED1006839A614EDB931E1B46649E61A16BD71AA6105CEC37B35",
+      "printed_pages": [81],
+      "applicability": {
+        "equipment_brand": "ABB",
+        "equipment_models": ["not model-specific in this registry"],
+        "controller_family": "IRC5; exact controller variant and RobotWare version must be confirmed before operational guidance",
+        "verified_evidence": ["event 10036 Revolution counter not updated"]
+      },
+      "copyright_boundary": "Registry metadata and an original factual summary may be published. The ABB PDF is linked from its official library and is not redistributed in this repository."
+    },
+    {
+      "title": "ABB Robot user documentation, IRC5 with RobotWare 6",
+      "document_number": "3HAC052355-001",
+      "revision": "Y",
+      "official_url": "https://library.e.abb.com/public/8518dcbdd9b14a638f7298a036c6010c/3HAC052355%20PS%20Robot%20user%20documentation%20RW%206-en.pdf",
+      "official_pdf_sha256": "AECA826E79406D8D86C402DE7156B29E551AF4F441A943519EC1E6D51E928031",
+      "printed_pages": [7, 13, 20],
+      "applicability": {
+        "equipment_brand": "ABB",
+        "equipment_models": ["IRB 120 is listed in the IRC5 documentation family"],
+        "controller_family": "IRC5 with RobotWare 6 documentation catalogue; not proof of the version installed on a school device",
+        "verified_evidence": ["documentation-family relationship among IRB 120, IRC5, FlexPendant and RobotWare 6"]
+      },
+      "copyright_boundary": "Registry metadata and an original factual summary may be published. The ABB PDF is linked from its official library and is not redistributed in this repository."
+    }
+  ]
+}

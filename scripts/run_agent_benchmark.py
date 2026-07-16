@@ -41,6 +41,11 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--include-binary", action="store_true")
     parser.add_argument(
+        "--knowledge-root",
+        type=Path,
+        help="override the corpus root; use data/public_sample for public reproducible runs",
+    )
+    parser.add_argument(
         "--formal-comparison",
         action="store_true",
         help="require all three runners, >=3 repetitions and fail-closed controlled execution",
@@ -232,6 +237,14 @@ def main() -> None:
     from app.tutoring import TutoringService
     from app.workflow import AgentWorkflow
     base_settings = Settings()
+    if args.knowledge_root:
+        knowledge_root = args.knowledge_root
+        if not knowledge_root.is_absolute():
+            knowledge_root = PROJECT_ROOT / knowledge_root
+        knowledge_root = knowledge_root.resolve()
+        if not knowledge_root.is_dir():
+            raise SystemExit("--knowledge-root must point to an existing directory")
+        base_settings = replace(base_settings, knowledge_root=knowledge_root)
     if args.formal_comparison:
         base_settings = replace(base_settings, agentic_fallback_to_portable=False)
     experiment_metadata = _experiment_metadata(base_settings, args.include_binary)

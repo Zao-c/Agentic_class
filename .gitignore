@@ -31,6 +31,8 @@ data/eval/*
 !data/eval/agent_redteam_system_v0.1.json
 !data/eval/rag_synthetic_180_v1.csv
 !data/eval/rag_synthetic_180_v1_manifest.json
+!data/eval/diagnosis_synthetic_50_v1.json
+!data/eval/diagnosis_synthetic_50_v1_manifest.json
 
 runtime/*.db*
 runtime/*.json
@@ -60,3 +62,4 @@ reports/*
 !reports/redteam_portable_after_fix.json
 !reports/system_redteam_engineering_v0.1.json
 !reports/rag_synthetic_180_local4_v1.json
+!reports/diagnosis_synthetic_50_portable_v1.json

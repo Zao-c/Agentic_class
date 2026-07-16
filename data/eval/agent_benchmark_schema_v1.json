@@ -45,6 +45,9 @@
         "properties": {
           "id": {"type": "string", "minLength": 1},
           "category": {"type": "string", "minLength": 1},
+          "semantic_family": {"type": "string", "minLength": 1},
+          "variant_id": {"type": "integer", "minimum": 1, "maximum": 100},
+          "split": {"enum": ["train", "dev", "test"]},
           "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
           "turns": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"type": "string", "minLength": 1}},
           "fixture_documents": {
@@ -71,6 +74,15 @@
               "slots": {"type": "object", "additionalProperties": {"type": "string"}},
               "forbidden_slot_values": {"type": "array", "items": {"type": "string"}},
               "tools": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+              "tools_by_runner": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "portable": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+                  "free-llm-agent": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+                  "controlled-langgraph": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+                }
+              },
               "final_status": {"enum": ["queued", "running", "waiting_for_user", "completed", "abstained", "escalated", "failed"]},
               "citation_titles_any": {"type": "array", "items": {"type": "string"}},
               "citation_required": {"type": "boolean"},

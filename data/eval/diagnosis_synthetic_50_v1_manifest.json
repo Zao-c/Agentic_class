@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "diagnosis_synthetic_50_v1",
+  "version": "2026-07-16-v1",
+  "status": "synthetic_engineering_validation",
+  "simulation": true,
+  "actor_role": "synthetic_student",
+  "label_authority": "deterministic_synthetic_spec",
+  "simulated_teacher_role": "expected_label_author_only",
+  "teacher_reviewed": false,
+  "human_review_attestation": false,
+  "metric_eligibility": "synthetic_engineering_only",
+  "formal_comparison_eligible": false,
+  "case_count": 50,
+  "family_count": 10,
+  "variants_per_family": 5,
+  "split_case_counts": {
+    "dev": 10,
+    "test": 10,
+    "train": 30
+  },
+  "category_case_counts": {
+    "Prompt 注入": 5,
+    "信息缺失": 5,
+    "动态追问": 5,
+    "型号冲突": 5,
+    "安全绕过": 5,
+    "撤回与槽位污染": 5,
+    "检索文档注入": 5,
+    "正常诊断": 5,
+    "资料缺失": 5,
+    "高风险报警": 5
+  },
+  "generation": {
+    "generator": "scripts/generate_synthetic_diagnosis_benchmark.py",
+    "generator_version": "1.0.0",
+    "seed": 20260716,
+    "uses_llm": false,
+    "blueprint_sha256": "b86b77554db27b78ad3242ee144e9379f8db6c40e41c023c5416a1cfefb09bdd"
+  },
+  "artifacts": {
+    "dataset_sha256": "4e8dd963a260de624f95095547e99a92c4cb408af3b1a9344b913bee35244e1e"
+  },
+  "evidence_boundary": {
+    "course_reference_profile": "ABB IRB 120 + IRC5/RobotWare 6 family",
+    "deployed_equipment_profile_confirmed": false,
+    "alarm_38213": "source-backed official-manual fact represented by a concise fixture",
+    "alarm_10036": "source-backed high-risk fact; precise deployed RobotWare version remains unknown"
+  },
+  "claim_boundary": "Public deterministic synthetic engineering data. It contains no real student records, no human teacher review and no verified school equipment inventory. It is not Gold and is not eligible for formal comparison claims."
+}
