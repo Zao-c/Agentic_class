@@ -10689,11 +10689,12 @@
       ]
     }
   ],
-  "created_at": "2026-07-17T02:53:40.642722+00:00",
+  "created_at": "2026-07-17T03:20:10.823125+00:00",
   "claim_boundary": "合成模拟课堂工程验证结果；模拟教师或学生不构成真实教师审核，不得用于正式准确率或 Gold Benchmark 宣传。",
   "rescoring": {
     "source_report": "diagnosis_three_way_engineering_raw_v1.json",
-    "source_report_sha256": "6137bc10036820edbc93b8cbaf6174bd4c6bf8cb426f00024807b4d7f5c1e33a",
+    "source_report_sha256": "81f719730fb584de966fe97fb8bc39e0520736ebf8b6e52d026262d2c65884fa",
+    "source_report_hash_normalization": "crlf_and_cr_to_lf",
     "source_protocol_version": "2.0.0",
     "llm_reexecuted": false,
     "changes": [

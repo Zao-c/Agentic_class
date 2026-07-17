@@ -1,4 +1,3 @@
-import hashlib
 import json
 import re
 from pathlib import Path
@@ -10,10 +9,16 @@ from scripts.agent_benchmark import (
     BenchmarkDataset,
     RunnerObservation,
 )
-from scripts.rescore_agent_benchmark import rescore
+from scripts.rescore_agent_benchmark import normalized_text_sha256, rescore
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_normalized_report_hash_is_stable_across_line_endings():
+    assert normalized_text_sha256(b'{\r\n  "value": 1\r\n}\r\n') == (
+        normalized_text_sha256(b'{\n  "value": 1\n}\n')
+    )
 
 
 def test_rescore_reuses_raw_observations_without_model_calls(tmp_path: Path):
@@ -114,9 +119,12 @@ def test_rescore_reuses_raw_observations_without_model_calls(tmp_path: Path):
     metrics = report["runner_reports"][0]["metrics"]
     assert report["protocol_version"] == BENCHMARK_PROTOCOL_VERSION == "2.1.0"
     assert report["rescoring"]["llm_reexecuted"] is False
-    assert report["rescoring"]["source_report_sha256"] == hashlib.sha256(
+    assert report["rescoring"]["source_report_sha256"] == normalized_text_sha256(
         source_bytes
-    ).hexdigest()
+    )
+    assert report["rescoring"]["source_report_hash_normalization"] == (
+        "crlf_and_cr_to_lf"
+    )
     assert metrics["slot_extraction_accuracy"] == 1.0
     assert metrics["task_completion_rate"] == 1.0
     assert metrics["unauthorized_tool_block_rate"] == 1.0
@@ -135,9 +143,9 @@ def test_published_three_way_reports_preserve_raw_and_rescored_boundaries():
     assert raw["protocol_version"] == "2.0.0"
     assert rescored["protocol_version"] == "2.1.0"
     assert rescored["rescoring"]["llm_reexecuted"] is False
-    assert rescored["rescoring"]["source_report_sha256"] == hashlib.sha256(
+    assert rescored["rescoring"]["source_report_sha256"] == normalized_text_sha256(
         raw_bytes
-    ).hexdigest()
+    )
     api_key_pattern = re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b", re.IGNORECASE)
     assert api_key_pattern.search(raw_bytes.decode("utf-8")) is None
 

@@ -29,6 +29,13 @@ def _resolve(path: Path) -> Path:
     return path if path.is_absolute() else PROJECT_ROOT / path
 
 
+def normalized_text_sha256(content: bytes) -> str:
+    """Hash report content consistently across Git CRLF/LF checkouts."""
+
+    normalized = content.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return hashlib.sha256(normalized).hexdigest()
+
+
 def _experiment_status(reports: List[Dict[str, Any]]) -> str:
     rows = [case for report in reports for case in report["cases"]]
     if not reports:
@@ -95,7 +102,8 @@ def rescore(source_path: Path, dataset_path: Path) -> Dict[str, Any]:
             "created_at": datetime.now(timezone.utc).isoformat(),
             "rescoring": {
                 "source_report": source_path.name,
-                "source_report_sha256": hashlib.sha256(source_bytes).hexdigest(),
+                "source_report_sha256": normalized_text_sha256(source_bytes),
+                "source_report_hash_normalization": "crlf_and_cr_to_lf",
                 "source_protocol_version": source.get("protocol_version"),
                 "llm_reexecuted": False,
                 "changes": [
