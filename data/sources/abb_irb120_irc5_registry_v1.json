@@ -26,12 +26,21 @@
       "revision": "K",
       "official_url": "https://library.e.abb.com/public/e6617595547fc6c2c1257cc5004451bd/Operating%20manual_Trouble%20shooting_3HAC020738-001_revK_en.pdf",
       "official_pdf_sha256": "5D99548225EF7ED1006839A614EDB931E1B46649E61A16BD71AA6105CEC37B35",
-      "printed_pages": [81],
+      "printed_pages": [79, 80, 81, 82, 91],
       "applicability": {
         "equipment_brand": "ABB",
         "equipment_models": ["not model-specific in this registry"],
         "controller_family": "IRC5; exact controller variant and RobotWare version must be confirmed before operational guidance",
-        "verified_evidence": ["event 10036 Revolution counter not updated"]
+        "verified_evidence": [
+          "event 10013 Emergency stop state",
+          "event 10024 Collision triggered",
+          "event 10027 Collision retraction fail",
+          "event 10035 Axis not calibrated",
+          "event 10036 Revolution counter not updated",
+          "event 10037 Axis not synchronized",
+          "event 10039 SMB memory is not OK",
+          "event 10420 New unsafe robot path"
+        ]
       },
       "copyright_boundary": "Registry metadata and an original factual summary may be published. The ABB PDF is linked from its official library and is not redistributed in this repository."
     },

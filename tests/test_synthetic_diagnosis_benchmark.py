@@ -212,6 +212,9 @@ def test_published_portable_report_matches_tracked_dataset_and_public_corpus():
 
     assert report["dataset"]["sha256"] == hashlib.sha256(dataset_path.read_bytes()).hexdigest()
     assert report["experiment_metadata"]["corpus_sha256"] == _sha256_path(corpus_path)
+    assert report["experiment_metadata"]["alarm_codes_sha256"] == _sha256_path(
+        PROJECT_ROOT / "data/structured/alarm_codes_v1.json"
+    )
     assert report["dataset"]["teacher_reviewed"] is False
     assert report["dataset"]["formal_comparison_eligible"] is False
     assert runner["runner"] == "portable"

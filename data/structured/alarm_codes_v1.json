@@ -6,6 +6,130 @@
       "equipment_brand": "ABB",
       "equipment_models": ["*"],
       "controller_versions": ["IRC5"],
+      "code": "10013",
+      "title": "急停状态",
+      "meaning": "ABB IRC5 故障诊断手册将事件 10013 说明为急停装置使 Motors On 回路断开，系统进入急停状态。机器人动作已经停止，但仍须确认具体触发源和现场安全条件。",
+      "likely_causes": [
+        "控制器、示教器或外部系统上的某个急停装置处于触发状态",
+        "急停输入回路仍然断开"
+      ],
+      "safe_checks": [
+        "记录完整事件原文、发生时间和当前运行模式",
+        "在防护区域外确认哪个急停装置处于触发状态",
+        "保持设备停止并转交教师或授权人员确认复位条件"
+      ],
+      "forbidden_actions": [
+        "不要旁路、短接或屏蔽急停回路",
+        "不要在人员或障碍物仍处于危险区时恢复 Motors On",
+        "不要仅清除事件后直接恢复程序"
+      ],
+      "risk_level": "high",
+      "source_title": "ABB Operating manual - Trouble shooting, IRC5",
+      "source_locator": "ABB 3HAC020738-001 Revision K，印刷页 79，事件 10013；适用机器人型号及 RobotWare 版本待现场确认",
+      "source_excerpt": "ABB 官方故障诊断手册在印刷页 79 收录事件 10013。本记录仅支持识别急停状态、记录触发源和高风险转交。",
+      "version": "3HAC020738-001-rev-K",
+      "effective_date": null,
+      "review_status": "source_verified",
+      "access_scope": "public",
+      "is_active": true
+    },
+    {
+      "equipment_brand": "ABB",
+      "equipment_models": ["*"],
+      "controller_versions": ["IRC5"],
+      "code": "10024",
+      "title": "检测到碰撞",
+      "meaning": "ABB IRC5 故障诊断手册将事件 10024 说明为机械臂部件与工作站内固定设备发生碰撞，机器人运动和程序执行已中断。",
+      "likely_causes": [
+        "机械臂、工具或负载与工作站内固定设备发生接触",
+        "轨迹、工件位置、工具数据或现场障碍物与预期不一致"
+      ],
+      "safe_checks": [
+        "保持机器人停止并记录碰撞位置、姿态、程序位置和事件时间",
+        "在防护区域外检查是否有人员、工件或设备受损",
+        "保留现场状态并转交教师或授权人员制定恢复方案"
+      ],
+      "forbidden_actions": [
+        "不要立即重启程序或强制移动机器人",
+        "不要让学生进入防护区域手动推拉机械臂",
+        "不要在损伤和夹持风险未排除前尝试脱困"
+      ],
+      "risk_level": "high",
+      "source_title": "ABB Operating manual - Trouble shooting, IRC5",
+      "source_locator": "ABB 3HAC020738-001 Revision K，印刷页 80，事件 10024；适用机器人型号及 RobotWare 版本待现场确认",
+      "source_excerpt": "ABB 官方故障诊断手册在印刷页 80 收录事件 10024。本记录仅提供碰撞状态解释、现场记录和高风险转交。",
+      "version": "3HAC020738-001-rev-K",
+      "effective_date": null,
+      "review_status": "source_verified",
+      "access_scope": "public",
+      "is_active": true
+    },
+    {
+      "equipment_brand": "ABB",
+      "equipment_models": ["*"],
+      "controller_versions": ["IRC5"],
+      "code": "10027",
+      "title": "碰撞退回失败",
+      "meaning": "ABB IRC5 故障诊断手册将事件 10027 说明为机械臂尝试从碰撞物退回但未成功，系统尚不能恢复正常运行，机器人可能仍被卡住。",
+      "likely_causes": [
+        "机器人仍被碰撞物、工件或夹具限制",
+        "自动碰撞退回未能建立安全脱离路径"
+      ],
+      "safe_checks": [
+        "保持停止并记录机械臂姿态、碰撞物、负载和事件时间",
+        "从防护区域外确认是否存在夹持、坠落或设备损坏风险",
+        "立即转交教师或授权维护人员制定受控脱困方案"
+      ],
+      "forbidden_actions": [
+        "不要照搬手册中的运动恢复步骤指导学生操作",
+        "不要强制点动、推拉机械臂或移除承载中的工件",
+        "不要在风险评估和现场监护缺失时恢复程序"
+      ],
+      "risk_level": "high",
+      "source_title": "ABB Operating manual - Trouble shooting, IRC5",
+      "source_locator": "ABB 3HAC020738-001 Revision K，印刷页 80，事件 10027；适用机器人型号及 RobotWare 版本待现场确认",
+      "source_excerpt": "ABB 官方故障诊断手册在印刷页 80 收录事件 10027。本记录不复刻运动恢复操作，只允许记录和高风险转交。",
+      "version": "3HAC020738-001-rev-K",
+      "effective_date": null,
+      "review_status": "source_verified",
+      "access_scope": "public",
+      "is_active": true
+    },
+    {
+      "equipment_brand": "ABB",
+      "equipment_models": ["*"],
+      "controller_versions": ["IRC5"],
+      "code": "10035",
+      "title": "轴未校准",
+      "meaning": "ABB IRC5 故障诊断手册将事件 10035 说明为一个或多个机械臂轴未校准。未完成正确校准前，不应恢复机器人运行。",
+      "likely_causes": [
+        "机械臂驱动电机或相关单元曾被更换或改动",
+        "校准状态与当前硬件配置不一致"
+      ],
+      "safe_checks": [
+        "记录未校准轴、完整事件原文和最近维修或更换记录",
+        "确认机器人完整型号、控制器变体和 RobotWare 精确版本",
+        "转交具备相应产品手册和校准权限的教师或维护人员"
+      ],
+      "forbidden_actions": [
+        "不要让学生自行执行轴校准",
+        "不要移动机器人猜测机械零位",
+        "不要复制其他型号的校准参数"
+      ],
+      "risk_level": "high",
+      "source_title": "ABB Operating manual - Trouble shooting, IRC5",
+      "source_locator": "ABB 3HAC020738-001 Revision K，印刷页 81，事件 10035；适用机器人型号及 RobotWare 版本待现场确认",
+      "source_excerpt": "ABB 官方故障诊断手册在印刷页 81 收录事件 10035。本记录仅支持识别未校准状态并转交授权人员。",
+      "version": "3HAC020738-001-rev-K",
+      "effective_date": null,
+      "review_status": "source_verified",
+      "access_scope": "public",
+      "is_active": true
+    },
+    {
+      "equipment_brand": "ABB",
+      "equipment_models": ["*"],
+      "controller_versions": ["IRC5"],
       "code": "10036",
       "title": "转数计数器需要更新",
       "meaning": "ABB IRC5 故障诊断手册将事件 10036 说明为转数计数器未更新。该状态涉及机器人轴位置与校准数据；具体机器人型号、控制器变体和 RobotWare 版本未确认时，不能据此执行校准或更新。",
@@ -29,6 +153,99 @@
       "source_title": "ABB Operating manual - Trouble shooting, IRC5",
       "source_locator": "ABB 3HAC020738-001 Revision K，印刷页 81，事件 10036；适用机器人型号及 RobotWare 版本待现场确认",
       "source_excerpt": "ABB 官方故障诊断手册在印刷页 81 收录事件 10036。此结构化记录仅支持识别、信息核对和高风险转交，不授权执行转数计数器更新。",
+      "version": "3HAC020738-001-rev-K",
+      "effective_date": null,
+      "review_status": "source_verified",
+      "access_scope": "public",
+      "is_active": true
+    },
+    {
+      "equipment_brand": "ABB",
+      "equipment_models": ["*"],
+      "controller_versions": ["IRC5"],
+      "code": "10037",
+      "title": "轴未同步",
+      "meaning": "ABB IRC5 故障诊断手册将事件 10037 说明为一个或多个机械臂轴未同步。未确认机械位置和产品适用步骤前，不应执行同步或恢复运行。",
+      "likely_causes": [
+        "机械臂驱动电机或相关单元曾被更换或改动",
+        "同步状态与当前硬件或测量数据不一致"
+      ],
+      "safe_checks": [
+        "记录未同步轴、完整事件原文和最近维修记录",
+        "确认设备型号、控制器变体、RobotWare 版本及机械位置状态",
+        "转交教师或授权维护人员查阅对应机械臂产品手册"
+      ],
+      "forbidden_actions": [
+        "不要让学生自行执行轴同步",
+        "不要移动机器人寻找同步标记后直接写入数据",
+        "不要套用其他型号或版本的同步步骤"
+      ],
+      "risk_level": "high",
+      "source_title": "ABB Operating manual - Trouble shooting, IRC5",
+      "source_locator": "ABB 3HAC020738-001 Revision K，印刷页 81，事件 10037；适用机器人型号及 RobotWare 版本待现场确认",
+      "source_excerpt": "ABB 官方故障诊断手册在印刷页 81 收录事件 10037。本记录仅支持识别未同步状态、信息核对和高风险转交。",
+      "version": "3HAC020738-001-rev-K",
+      "effective_date": null,
+      "review_status": "source_verified",
+      "access_scope": "public",
+      "is_active": true
+    },
+    {
+      "equipment_brand": "ABB",
+      "equipment_models": ["*"],
+      "controller_versions": ["IRC5"],
+      "code": "10039",
+      "title": "SMB 存储数据异常",
+      "meaning": "ABB IRC5 故障诊断手册将事件 10039 说明为串行测量板 SMB 中的数据在启动检查时不正常，自动运行前必须解决数据一致性问题。",
+      "likely_causes": [
+        "SMB 与控制器保存的数据不一致",
+        "SMB、控制器或相关部件曾被更换"
+      ],
+      "safe_checks": [
+        "记录完整事件原文、发生时间和近期 SMB 或控制器更换记录",
+        "确认机器人型号、控制器变体和 RobotWare 精确版本",
+        "保持自动运行停止并转交授权维护人员核对备份和测量数据"
+      ],
+      "forbidden_actions": [
+        "不要让学生自行更新或覆盖 SMB 数据",
+        "不要把其他机器人或控制器的测量数据写入当前设备",
+        "不要在数据一致性未确认时恢复自动运行"
+      ],
+      "risk_level": "high",
+      "source_title": "ABB Operating manual - Trouble shooting, IRC5",
+      "source_locator": "ABB 3HAC020738-001 Revision K，印刷页 82，事件 10039；适用机器人型号及 RobotWare 版本待现场确认",
+      "source_excerpt": "ABB 官方故障诊断手册在印刷页 82 收录事件 10039。本记录仅支持数据异常识别、维护记录核对和高风险转交。",
+      "version": "3HAC020738-001-rev-K",
+      "effective_date": null,
+      "review_status": "source_verified",
+      "access_scope": "public",
+      "is_active": true
+    },
+    {
+      "equipment_brand": "ABB",
+      "equipment_models": ["*"],
+      "controller_versions": ["IRC5"],
+      "code": "10420",
+      "title": "新的未验证机器人路径",
+      "meaning": "ABB IRC5 故障诊断手册将事件 10420 说明为目标点修改后原路径被清除，机器人可能沿新的未测试路径运动；该路径可能存在障碍物和碰撞风险。",
+      "likely_causes": [
+        "RAPID 任务中的目标点被修改",
+        "程序指针与修改后的目标之间形成了新的未验证路径"
+      ],
+      "safe_checks": [
+        "记录被修改的目标、程序指针位置、运行模式和事件时间",
+        "停止真实设备执行，并在离线仿真或教师监督环境审查路径",
+        "确认速度限制、工作空间和障碍物后由教师决定后续处理"
+      ],
+      "forbidden_actions": [
+        "不要在真实机器人上直接试跑未验证路径",
+        "不要跳过低速验证、工作区检查和现场监护",
+        "不要通过修改程序指针规避路径审查"
+      ],
+      "risk_level": "high",
+      "source_title": "ABB Operating manual - Trouble shooting, IRC5",
+      "source_locator": "ABB 3HAC020738-001 Revision K，印刷页 91，事件 10420；适用机器人型号及 RobotWare 版本待现场确认",
+      "source_excerpt": "ABB 官方故障诊断手册在印刷页 91 收录事件 10420。本记录仅支持识别未验证路径风险、离线审查和高风险转交。",
       "version": "3HAC020738-001-rev-K",
       "effective_date": null,
       "review_status": "source_verified",
