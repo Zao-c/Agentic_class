@@ -9,6 +9,29 @@
 
 当前 132 条 QA 均为候选数据。仓库不会把模型判断、空白审核行或仅生成了参考答案的记录称为教师审核，也不会预生成虚假的 Gold 数据。
 
+审核生命周期与数据层级是两条独立轴：
+
+| 派生审核状态 | 决策权 | 数据层级 / Gold 资格 |
+|---|---|---|
+| `unreviewed` | `none` | candidate；不可冻结 |
+| `simulated_review` | `simulation` | candidate；`gold_freeze_eligible=false` |
+| `teacher_accepted` | `human_teacher` | 人工门禁全部通过后才可冻结 Gold |
+| `teacher_rejected` | `human_teacher` | rejected；不得进入 Benchmark split |
+
+报警记录自身的 `source_verified` 只表示官方来源元数据已经核验，不表示教师接受，也不等于学校实机适用性已经确认。
+
+## 隔离模拟审核包
+
+可以在教师正式审核前生成机器预检包：
+
+```powershell
+python scripts/build_review_package.py
+```
+
+本机完整包写入被 Git 忽略的 `runtime/review-packages/`，包含 132 条私有 QA candidate 和 29 条公开报警记录的哈希、检查建议和待人工确认项。公开仓库只保存[聚合摘要](simulated-review-package-summary-v1.json)与 [Schema](review-package-schema.json)，不含私有题面、答案或本机绝对路径。
+
+模拟包的 artifact type 是 `simulated_review_package`，没有教师身份、人工声明或自动接受决定。人工审核审计必须是 `teacher_review_audit`；`validate_audit()` 与 `freeze_gold()` 会显式拒绝模拟包，因此两条流程不能通过改文件名混用。
+
 ## 候选集质量检查与公开证据
 
 在生成教师审核表前先运行：

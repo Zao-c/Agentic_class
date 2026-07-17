@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "industrial-robot-course-simulated-review-package-v1",
+  "title": "隔离的模拟审核包",
+  "type": "object",
+  "required": [
+    "schema_version", "artifact_type", "package_id", "generated_at",
+    "review_mode", "teacher_reviewed", "human_review_attestation",
+    "metric_eligibility", "gold_freeze_eligible", "source_snapshots",
+    "status_counts", "item_type_counts", "records", "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "artifact_type": {"const": "simulated_review_package"},
+    "package_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "review_mode": {"const": "simulation"},
+    "teacher_reviewed": {"const": false},
+    "human_review_attestation": {"const": false},
+    "metric_eligibility": {"const": false},
+    "gold_freeze_eligible": {"const": false},
+    "source_snapshots": {"type": "array", "minItems": 1},
+    "status_counts": {"type": "object"},
+    "item_type_counts": {"type": "object"},
+    "records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "item_id", "item_type", "source_item_sha256", "review_status",
+          "review_authority", "suggested_decision", "suggested_amendments",
+          "suggested_checks", "review_note"
+        ],
+        "properties": {
+          "item_id": {"type": "string", "minLength": 1},
+          "item_type": {"enum": ["course_qa", "alarm_code"]},
+          "source_item_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "review_status": {"const": "simulated_review"},
+          "review_authority": {"const": "simulation"},
+          "suggested_decision": {"type": "string", "minLength": 1},
+          "suggested_amendments": {"type": "array"},
+          "suggested_checks": {"type": "object"},
+          "review_note": {"type": "string", "minLength": 1}
+        },
+        "not": {
+          "anyOf": [
+            {"required": ["reviewer_id"]},
+            {"required": ["reviewer_role"]},
+            {"required": ["reviewed_at"]}
+          ]
+        }
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1}
+  }
+}

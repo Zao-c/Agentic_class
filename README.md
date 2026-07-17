@@ -17,10 +17,10 @@
 | 真实受控 Agent | LangGraph `StateGraph` + DeepSeek 结构化决策已完成真实 HTTP 烟测；模型异常可显式 fallback |
 | 工具参数真的参与执行 | Trace 同时保存 `proposed_plan`、`validated_plan`、`executed_plan`；伪造、越权和无来源参数会被删除、覆盖或拒绝 |
 | 三类任务工程闭环 | 问答、逐槽故障诊断、辅导出题/批改均进入 Run、SSE、Trace、反馈和回归链路 |
-| 数据治理而非造 Gold | [132 条候选快照聚合证据](data/datasets/candidate-course-qa-summary-v1.json)可公开核验，题目内容仍保持私有；只有具名教师审核、三项检查和哈希复验通过后才能冻结 Gold |
-| 可复现与可发布 | 144 项本地测试通过、`app/` 覆盖率 91%；公开仓库包含 180 条合成检索任务、50 条多轮诊断任务与隔离运行器 |
+| 数据治理而非造 Gold | 132 条 QA 与 29 条报警可生成隔离模拟审核包；模拟建议固定 `gold_freeze_eligible=false`，只有具名教师审核、三项检查和哈希复验通过后才能冻结 Gold |
+| 可复现与可发布 | 151 项本地测试通过、`app/` 覆盖率 91%；公开仓库包含 180 条合成检索任务、50 条多轮诊断任务与隔离运行器 |
 
-> **证据边界：** 正式 RAG/诊断/辅导评测仍只有 12/7/4 条；结构化报警库现有 9 条来源核验记录，但学校实机版本和教师审核仍未确认。真实学员 bad case 为 0，教师确认 Gold 为 0。单条 LLM 烟测只证明链路能运行；下表的 portable 数据使用公开合成语料和工程冻结题，也不代表生产准确率。
+> **证据边界：** 正式 RAG/诊断/辅导评测仍只有 12/7/4 条；结构化报警库现有 29 条来源核验记录，但学校实机版本和教师审核仍未确认。真实学员 bad case 为 0，教师确认 Gold 为 0。单条 LLM 烟测只证明链路能运行；下表的 portable 数据使用公开合成语料和工程冻结题，也不代表生产准确率。
 
 ## 180 条公开合成检索 Benchmark
 
@@ -60,7 +60,7 @@ Portable 在仅使用该公开摘要目录时完成 50 条单次实跑：[原始
 
 报告 Schema 1.2 又完成了 [3 次重复、150 条观测](reports/diagnosis_portable_repetition_stability_v1.json)：三次 completion 均为 1.00、总体标准差 0、跨轮结果变化 case 为 0；各次 P50 的均值/总体标准差为 1100.09/120.73 ms，P95 为 1847.69/267.28 ms。延迟波动被保留，不用池化 P95 冒充跨轮稳定性。
 
-> 这里的 100% 是“合成任务符合当前可执行协议”的契约回归结果，不是故障诊断准确率。数据没有真实学员、教师审核或学校设备清单，且 50 条任务只覆盖 9 条结构化记录中的 `38213` 与 `10036`；因此它被强制标记为 `synthetic_engineering_only`，不能用于 Gold 或正式三方案质量结论。CI 会重新执行全部 50 条，并把 completion 1.0、unsafe advice 0.0 作为工程契约门禁。
+> 这里的 100% 是“合成任务符合当前可执行协议”的契约回归结果，不是故障诊断准确率。数据没有真实学员、教师审核或学校设备清单，且 50 条任务只覆盖 `38213` 与 `10036`；对应公开报告运行时使用的是 9 条报警库快照，当前库虽已扩至 29 条，也不会反向改写历史报告哈希。因此它被强制标记为 `synthetic_engineering_only`，不能用于 Gold 或正式三方案质量结论。
 
 ```powershell
 python scripts/generate_synthetic_diagnosis_benchmark.py
@@ -194,9 +194,12 @@ python scripts/manage_gold_dataset.py review-template
 python scripts/manage_gold_dataset.py import-review --review-batch-id teacher-review-001
 python scripts/manage_gold_dataset.py validate-review
 python scripts/manage_gold_dataset.py freeze --version 1.0.0
+
+# 可选：先生成 132 条 QA + 29 条报警的机器预检包；输出位于被 Git 忽略的 runtime/
+python scripts/build_review_package.py
 ```
 
-候选快照 lint 结果为 0 error、10 个重复组 warning（涉及 20/132 条）；重复项保留给教师逐条判断，不自动删除。`accepted` 必须具备教师角色、带时区审核时间、人工声明、来源/隐私/安全检查和 train/dev/test split；冻结会复验候选、单条记录、审核 CSV 与原始来源 SHA256，已有版本不可覆盖。当前没有满足条件的 accepted 记录，因此仓库刻意没有 Gold 产物。详见 [数据治理](data/datasets/README.md)。
+候选快照 lint 结果为 0 error、10 个重复组 warning（涉及 20/132 条）；重复项保留给教师逐条判断，不自动删除。[模拟审核聚合证据](data/datasets/simulated-review-package-summary-v1.json)只公开 161 条的类型、哈希和资格边界，不含题面或答案。人工 `accepted` 必须具备教师角色、带时区审核时间、人工声明、来源/隐私/安全检查和 train/dev/test split；Gold 冻结器会拒绝模拟包，即使有人手工把模拟建议改成 accepted。当前没有满足条件的人工 accepted 记录，因此仓库刻意没有 Gold 产物。详见 [数据治理](data/datasets/README.md)。
 
 ## 安全与公开边界
 

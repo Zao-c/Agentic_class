@@ -209,6 +209,9 @@ def _validated_record(
         "item_id": item_id,
         "candidate_item_sha256": _canonical_sha256(candidate),
         "decision": decision,
+        "review_status": (
+            "teacher_accepted" if decision == "accepted" else "teacher_rejected"
+        ),
         "decision_authority": "human_teacher",
         "automation_decision": False,
         "reviewer_id": reviewer_id,
@@ -260,6 +263,7 @@ def import_reviews(
     counts = Counter(record["decision"] for record in records)
     audit = {
         "schema_version": "1.0.0",
+        "artifact_type": "teacher_review_audit",
         "review_batch_id": review_batch_id,
         "imported_at": _utc_now(),
         "candidate": {
@@ -294,6 +298,8 @@ def validate_audit(
     audit = json.loads(audit_path.read_text(encoding="utf-8"))
     if audit.get("schema_version") != "1.0.0":
         raise GovernanceError("unsupported review audit schema_version")
+    if audit.get("artifact_type") != "teacher_review_audit":
+        raise GovernanceError("artifact_type must be teacher_review_audit")
     if audit.get("candidate", {}).get("sha256") != sha256_file(candidate_path):
         raise GovernanceError("candidate snapshot hash differs from the reviewed snapshot")
     records = audit.get("records")
@@ -309,6 +315,15 @@ def validate_audit(
             raise GovernanceError(f"{item_id}: candidate item changed after review")
         if record.get("decision") not in DECISIONS:
             raise GovernanceError(f"{item_id}: invalid audited decision")
+        expected_review_status = (
+            "teacher_accepted"
+            if record["decision"] == "accepted"
+            else "teacher_rejected"
+        )
+        if record.get("review_status") != expected_review_status:
+            raise GovernanceError(
+                f"{item_id}: audited decision and review_status are inconsistent"
+            )
         if record.get("decision_authority") != "human_teacher":
             raise GovernanceError(f"{item_id}: decision authority is not human_teacher")
         if record.get("automation_decision") is not False:

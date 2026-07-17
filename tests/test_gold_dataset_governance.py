@@ -116,9 +116,14 @@ def test_import_keeps_unreviewed_out_and_requires_human_teacher_attestation(tmp_
     audit_path = tmp_path / "audit.json"
     audit = import_reviews(candidate_path, review_csv, audit_path, "batch-001")
     assert audit["counts"] == {"accepted": 1, "rejected": 1, "pending": 1}
+    assert audit["artifact_type"] == "teacher_review_audit"
     assert audit["review_input"]["sha256"] == sha256_file(review_csv)
     assert [record["item_id"] for record in audit["records"]] == ["qa-1", "qa-2"]
     assert all(record["automation_decision"] is False for record in audit["records"])
+    assert {record["review_status"] for record in audit["records"]} == {
+        "teacher_accepted",
+        "teacher_rejected",
+    }
 
     invalid = _row("qa-1")
     invalid["human_review_attestation"] = "false"
@@ -205,6 +210,26 @@ def test_freeze_refuses_candidate_or_audit_tampering(tmp_path):
     audit["records"][0]["checks"] = {}
     audit_path.write_text(json.dumps(audit), encoding="utf-8")
     with pytest.raises(GovernanceError, match="checks are incomplete"):
+        validate_audit(candidate_path, audit_path)
+
+
+def test_review_status_must_match_human_decision_and_artifact_type(tmp_path):
+    _, candidate_path = _workspace(tmp_path, ("qa-1",))
+    review_csv = tmp_path / "review.csv"
+    _write_reviews(review_csv, [_row("qa-1")])
+    audit_path = tmp_path / "audit.json"
+    import_reviews(candidate_path, review_csv, audit_path, "batch-status")
+
+    audit = json.loads(audit_path.read_text(encoding="utf-8"))
+    audit["records"][0]["review_status"] = "teacher_rejected"
+    audit_path.write_text(json.dumps(audit), encoding="utf-8")
+    with pytest.raises(GovernanceError, match="inconsistent"):
+        validate_audit(candidate_path, audit_path)
+
+    audit["records"][0]["review_status"] = "teacher_accepted"
+    audit["artifact_type"] = "simulated_review_package"
+    audit_path.write_text(json.dumps(audit), encoding="utf-8")
+    with pytest.raises(GovernanceError, match="teacher_review_audit"):
         validate_audit(candidate_path, audit_path)
 
 

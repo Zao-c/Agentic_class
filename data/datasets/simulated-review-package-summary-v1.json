@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "package_id": "simulated-review-v1",
+  "generated_at": "2026-07-17T00:00:00Z",
+  "review_mode": "simulation",
+  "teacher_reviewed": false,
+  "human_review_attestation": false,
+  "metric_eligibility": false,
+  "gold_freeze_eligible": false,
+  "source_snapshots": [
+    {
+      "kind": "course_qa_candidate",
+      "relative_path": "data/datasets/candidate/course_qa_v1.jsonl",
+      "sha256": "a78e8b609b7d113133a547718d1ec941875cabf966c99e418dd69bca38c7ae59",
+      "item_count": 132
+    },
+    {
+      "kind": "alarm_code",
+      "relative_path": "data/structured/alarm_codes_v1.json",
+      "sha256": "215f0e1cf55d33bb02d210ebc912682d9dea31a96db6838eb5948b97c06597f1",
+      "item_count": 29
+    },
+    {
+      "kind": "official_source_registry",
+      "relative_path": "data/sources/abb_irb120_irc5_registry_v1.json",
+      "sha256": "d74cf927f628613f6170393c79970f389ca99ca7707ebf58f05ff4f9da79b1ee",
+      "item_count": 3
+    }
+  ],
+  "status_counts": {
+    "simulated_review": 161
+  },
+  "item_type_counts": {
+    "alarm_code": 29,
+    "course_qa": 132
+  },
+  "claim_boundary": "Simulation-only triage artifact. It is not human teacher review, not Gold, not metric-eligible and cannot be consumed by the Gold freeze workflow.",
+  "artifact_type": "simulated_review_package_summary",
+  "source_artifact_type": "simulated_review_package",
+  "content_included": false
+}

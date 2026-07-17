@@ -3,9 +3,10 @@
   "$id": "industrial-robot-course-teacher-review-audit-v1",
   "title": "教师审核批次审计记录",
   "type": "object",
-  "required": ["schema_version", "review_batch_id", "imported_at", "candidate", "review_input", "policy", "counts", "records"],
+  "required": ["schema_version", "artifact_type", "review_batch_id", "imported_at", "candidate", "review_input", "policy", "counts", "records"],
   "properties": {
     "schema_version": {"const": "1.0.0"},
+    "artifact_type": {"const": "teacher_review_audit"},
     "review_batch_id": {"type": "string", "minLength": 1},
     "imported_at": {"type": "string", "format": "date-time"},
     "candidate": {
@@ -27,14 +28,25 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["item_id", "candidate_item_sha256", "decision", "decision_authority", "automation_decision", "reviewer_id", "reviewer_role", "reviewed_at", "human_review_attestation", "checks"],
+        "required": ["item_id", "candidate_item_sha256", "decision", "review_status", "decision_authority", "automation_decision", "reviewer_id", "reviewer_role", "reviewed_at", "human_review_attestation", "checks"],
         "properties": {
           "decision": {"enum": ["accepted", "rejected"]},
+          "review_status": {"enum": ["teacher_accepted", "teacher_rejected"]},
           "decision_authority": {"const": "human_teacher"},
           "automation_decision": {"const": false},
           "human_review_attestation": {"const": true},
           "reviewer_role": {"enum": ["teacher", "course_teacher"]}
-        }
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"decision": {"const": "accepted"}}},
+            "then": {"properties": {"review_status": {"const": "teacher_accepted"}}}
+          },
+          {
+            "if": {"properties": {"decision": {"const": "rejected"}}},
+            "then": {"properties": {"review_status": {"const": "teacher_rejected"}}}
+          }
+        ]
       }
     }
   }

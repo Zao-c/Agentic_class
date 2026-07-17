@@ -55,10 +55,10 @@ def test_abb_registry_contains_metadata_only_official_sources():
     assert records_by_number["3HAC020738-001"]["official_pdf_sha256"] == (
         "5D99548225EF7ED1006839A614EDB931E1B46649E61A16BD71AA6105CEC37B35"
     )
-    assert records_by_number["3HAC020738-001"]["printed_pages"] == [79, 80, 81, 82, 91]
+    assert records_by_number["3HAC020738-001"]["printed_pages"] == [79, 80, 81, 82, 83, 91]
     assert len(
         records_by_number["3HAC020738-001"]["applicability"]["verified_evidence"]
-    ) == 8
+    ) == 28
     assert records_by_number["3HAC052355-001"]["official_pdf_sha256"] == (
         "AECA826E79406D8D86C402DE7156B29E551AF4F441A943519EC1E6D51E928031"
     )
@@ -71,13 +71,33 @@ def test_official_alarm_records_validate_and_keep_evidence_boundaries():
     records = {item["code"]: AlarmCodeRecord.model_validate(item) for item in raw_records}
 
     assert set(records) == {
+        "10002",
+        "10009",
+        "10010",
+        "10011",
+        "10012",
         "10013",
+        "10014",
+        "10015",
+        "10016",
+        "10017",
+        "10018",
+        "10019",
+        "10020",
+        "10021",
         "10024",
+        "10025",
+        "10026",
         "10027",
+        "10030",
+        "10034",
         "10035",
         "10036",
         "10037",
+        "10038",
         "10039",
+        "10041",
+        "10060",
         "10420",
         "38213",
     }
@@ -119,7 +139,7 @@ def test_official_alarm_records_validate_and_keep_evidence_boundaries():
 
 def test_official_alarm_file_imports_with_model_and_risk_boundaries(tmp_path: Path):
     service = AlarmCodeService(Store(tmp_path / "alarm-registry.db"))
-    assert service.import_file(ALARMS_PATH) == {"created": 9, "updated": 0, "total": 9}
+    assert service.import_file(ALARMS_PATH) == {"created": 29, "updated": 0, "total": 29}
 
     battery = service.lookup("38213", "ABB", "IRB120")
     assert battery["status"] == "exact_match"
@@ -140,6 +160,25 @@ def test_official_alarm_file_imports_with_model_and_risk_boundaries(tmp_path: Pa
     unsafe_path = service.lookup("10420", "ABB", "IRB120")
     assert unsafe_path["status"] == "brand_match_model_unverified"
     assert unsafe_path["matches"][0]["risk_level"] == "high"
+
+    positive_state = service.lookup("10038", "ABB", "IRB120")
+    assert positive_state["status"] == "brand_match_model_unverified"
+    assert positive_state["matches"][0]["risk_level"] == "low"
+
+
+def test_every_alarm_locator_maps_to_registered_document_revision_and_page():
+    registry = _read(REGISTRY_PATH)
+    sources = {record["document_number"]: record for record in registry["records"]}
+
+    for record in _read(ALARMS_PATH)["records"]:
+        document_number, revision = record["version"].split("-rev-", 1)
+        source = sources[document_number]
+        assert f"Revision {revision}" in record["source_locator"]
+        assert any(
+            f"印刷页 {page}" in record["source_locator"]
+            for page in source["printed_pages"]
+        )
+        assert record["review_status"] == "source_verified"
 
 
 def test_new_official_high_risk_events_fail_closed_in_portable_workflow(tmp_path: Path):

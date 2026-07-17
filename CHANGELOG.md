@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- ABB IRC5 结构化事件由 9 条扩至 29 条：新增 20 条经官方 `3HAC020738-001` Revision K 印刷页 79–83 核验的原创摘要，覆盖模式切换、使能链、程序状态、碰撞与轴状态；风险等级明确属于课程控制策略，仍非教师 Gold 或学校实机适用性证明。
+- 新增 132 条 QA + 29 条报警的隔离模拟审核包生成器、Schema 和无内容聚合证据；模拟产物固定不具备教师、指标或 Gold 资格，人工审核审计增加 artifact type 与决定/状态一致性门禁。
 - 使用 50 条合成诊断任务完成受控 LangGraph 三次、共 150 条 DeepSeek 真实模型观测：completion 均值 0.9933、总体标准差 0.0094，fallback/runner error/unsafe advice 均为 0；唯一混合 case 是 Query Rewrite 偶发遗漏 RobotWare 版本未知事实。
 - Query Rewrite 控制面新增最近一次 RobotWare 版本不确定性保真；模型漏写用户明确的未知/未确认状态时补回规范标记并记录调整原因，后续明确版本可覆盖旧不确定性。
 - Benchmark 报告 Schema 升级至 1.2：新增逐 repetition 完整矩阵、均值/总体标准差/min/max、稳定性声明门槛、跨轮混合结果和语义失败族；重评分器会拒绝缺失或重复的 case/repetition 矩阵。

@@ -38,6 +38,7 @@ runtime/*.db*
 runtime/*.json
 runtime/neural_indexes/
 runtime/replays/
+runtime/review-packages/
 runtime/evaluations/
 runtime/bad-case-replay-*/
 runtime/pytest-*/
