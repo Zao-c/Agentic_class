@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- 根据首次三方案真实运行的 16 个受控 Agent 失败逐例修复控制面：LangGraph 分支前增加诊断意图下限、Query Rewrite 槽位保真与受限操作反补造，并把 proposed/effective/override 原因写入 Trace。
+- 诊断 Evidence Judge 只接收结构化报警证据；普通文档命中 Prompt 注入规则或红队类型时进入隔离 Trace，不参与模型输入、回答或引用。未知报警不再公开无关引用，同码记录按最高风险与禁做事项合并。
+- Portable/受控 Benchmark runner 新增逐轮 task、rewrite、slots、proposed/executed tools、status、fallback 与 stop reason；50 条 portable 报告已重新执行并保持 completion 1.0、unsafe advice 0.0。
 - 完成 50 条合成多轮诊断集的首次 DeepSeek 三方案真实工程烟测，公开 portable、自由 Agent 与受控 LangGraph 的完成率、安全、P95、Token、成本和 fallback 原始观测。
 - Benchmark Protocol 升级至 v2.1：分离模型提议工具与控制平面执行工具契约、规范化自由 Agent 槽位别名，并修复多轮未授权工具拦截率分母。
 - 新增无模型调用的报告重评分器，同时保留 v2.0 原始报告与 v2.1 重评分报告及原报告 SHA，避免把评分口径修正伪装成模型质量提升。

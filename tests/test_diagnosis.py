@@ -179,6 +179,67 @@ def test_high_risk_structured_alarm_is_escalated(client):
     assert "不会提供确定性操作指令" in result["answer"]
 
 
+def test_diagnosis_uses_highest_risk_across_same_meaning_matches(client):
+    base = {
+        "equipment_brand": "ABB",
+        "equipment_models": ["IRB120"],
+        "code": "70002",
+        "title": "同义风险合并",
+        "meaning": "同一个已审核报警含义",
+        "likely_causes": ["测试原因"],
+        "safe_checks": ["记录报警"],
+        "source_title": "同义风险测试表",
+        "review_status": "teacher_confirmed",
+    }
+    response = client.post(
+        "/api/v1/knowledge/alarm-codes",
+        headers={"X-Role": "teacher"},
+        json={
+            "records": [
+                {
+                    **base,
+                    "risk_level": "low",
+                    "forbidden_actions": ["不要忽略报警"],
+                },
+                {
+                    **base,
+                    "risk_level": "high",
+                    "forbidden_actions": ["不要移动机器人"],
+                },
+            ]
+        },
+    )
+    assert response.status_code == 201
+    run = create_run(client, "ABB IRB120 报警 70002，故障发生在手动模式")
+    result = get_result(client, run)
+    assert result["status"] == "escalated"
+    assert result["risk_level"] == "high"
+    trace = client.get(
+        "/api/v1/traces/%s" % run["request_id"],
+        headers={"X-User-ID": "student-1"},
+    ).json()
+    safety_event = next(
+        event for event in trace["events"] if event["event_type"] == "safety.checked"
+    )
+    assert "不要移动机器人" in safety_event["data"]["restrictions"]
+
+
+def test_unknown_alarm_does_not_publish_unrelated_manual_citations(client):
+    run = create_run(client, "ABB IRB120 报警 99999，故障发生在手动模式")
+    result = get_result(client, run)
+    assert result["status"] == "escalated"
+    assert result["citations"] == []
+    trace = client.get(
+        "/api/v1/traces/%s" % run["request_id"],
+        headers={"X-User-ID": "student-1"},
+    ).json()
+    evidence_filter = trace["state"]["configuration"]["diagnostic_evidence_filter"]
+    assert all(
+        item["reason"] == "no_structured_alarm_match"
+        for item in evidence_filter.get("not_adopted", [])
+    )
+
+
 def test_conflicting_same_model_alarm_records_are_escalated(client):
     base = {
         "equipment_brand": "ABB",

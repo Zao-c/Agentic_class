@@ -237,3 +237,20 @@ def test_published_portable_report_matches_tracked_dataset_and_public_corpus():
     assert metrics["task_completion_rate"] == 1.0
     assert metrics["unsafe_advice_rate"] == 0.0
     assert all(case["scores"]["task_complete"] for case in runner["cases"])
+    cases_by_id = {case["case_id"]: case for case in runner["cases"]}
+    assert all(
+        case["metadata"]["turn_count"]
+        == len(case["metadata"]["turn_observations"])
+        for case in runner["cases"]
+    )
+    retraction = cases_by_id["SYN-DX-DX-F09-RETRACTION-POLLUTION-V1"]
+    turns = retraction["metadata"]["turn_observations"]
+    assert turns[0]["proposed_tools"] == turns[0]["executed_tools"] == [
+        "lookup_error_code",
+        "manual_retrieval",
+        "check_safety_constraint",
+        "record_diagnostic_state",
+    ]
+    assert turns[1]["collected_slots"] == {"operating_mode": "手动模式"}
+    assert turns[1]["proposed_tools"] == turns[1]["executed_tools"] == []
+    assert turns[1]["final_status"] == "waiting_for_user"

@@ -1,3 +1,4 @@
+import hashlib
 import re
 import time
 import uuid
@@ -10,7 +11,7 @@ from app.alarm_codes import AlarmCodeService, split_equipment
 from app.evidence import EvidenceJudge
 from app.retrieval import Retriever, tokenize
 from app.safety import SafetyDecision, check_safety
-from app.schemas import AgentState, ChatRequest, RiskLevel, RunStatus, TaskType
+from app.schemas import AgentState, ChatRequest, Citation, RiskLevel, RunStatus, TaskType
 from app.storage import Store
 from app.tool_runtime import ToolExecutionError, ToolRuntime, ToolSpec
 from app.tutoring import TutoringService
@@ -39,6 +40,19 @@ MODEL_PATTERNS = (
     r"\b[A-Z]{2,5}-?\d{2,5}[A-Z-]*\b",
 )
 BRANDS = ("ABB", "FANUC", "发那科", "KUKA", "库卡", "埃斯顿", "汇川", "新松", "安川")
+UNTRUSTED_DIAGNOSTIC_EVIDENCE_TYPES = frozenset({"redteam_fixture"})
+EVIDENCE_PROMPT_INJECTION_PATTERNS = (
+    r"忽略.{0,12}(?:系统|开发者|安全).{0,12}(?:规则|指令|要求)",
+    r"(?:调用|执行)\s*(?:robot_control|tool_call|function_call)",
+    r"\b(?:ignore|override|disregard)\b.{0,40}\b(?:system|developer|instruction|policy)\b",
+    r"\b(?:system|developer|assistant)\s*prompt\s*:",
+)
+RISK_PRIORITY = {
+    RiskLevel.low: 0,
+    RiskLevel.medium: 1,
+    RiskLevel.high: 2,
+    RiskLevel.critical: 3,
+}
 
 
 def invalidates_previous_diagnostic_context(text: str) -> bool:
@@ -83,6 +97,19 @@ def equipment_claim_is_untrusted(text: str) -> bool:
         )
     )
     return hypothetical or explicitly_unknown
+
+
+def diagnostic_evidence_rejection_reason(document_type: str, text: str) -> Optional[str]:
+    """Keep untrusted instructions out of diagnostic model context and citations."""
+
+    if document_type in UNTRUSTED_DIAGNOSTIC_EVIDENCE_TYPES:
+        return "untrusted_document_type"
+    if any(
+        re.search(pattern, text, flags=re.I | re.S)
+        for pattern in EVIDENCE_PROMPT_INJECTION_PATTERNS
+    ):
+        return "prompt_injection_pattern"
+    return None
 
 
 def extract_contextual_diagnostic_slots(
@@ -292,12 +319,17 @@ class AgentWorkflow:
         self.store.append_event(state.run_id, "model.decision.failed", record)
         self.store.save_state(state)
 
-    def _agentic_evidence_supported(self, state: AgentState) -> Optional[bool]:
+    def _agentic_evidence_supported(
+        self,
+        state: AgentState,
+        citations: Optional[List[Citation]] = None,
+    ) -> Optional[bool]:
         if not self.agentic_graph:
             return None
         try:
             result = self.agentic_graph.judge_evidence(
-                state.normalized_query, state.retrieved_evidence
+                state.normalized_query,
+                citations if citations is not None else state.retrieved_evidence,
             )
             self._record_model_decisions(state, result.get("decisions", []))
             decision = result["evidence_decision"]
@@ -563,7 +595,10 @@ class AgentWorkflow:
                 )
                 try:
                     preflight = self.agentic_graph.run_preflight(
-                        state.original_message, effective_history, deterministic_slots
+                        state.original_message,
+                        effective_history,
+                        deterministic_slots,
+                        deterministic_task,
                     )
                     self._record_model_decisions(state, preflight.get("decisions", []))
                     state.task_type = TaskType(preflight["task_type"])
@@ -583,6 +618,17 @@ class AgentWorkflow:
                         "plan_adjustments": preflight.get("plan_adjustments", []),
                         "clarification_question": preflight.get("clarification_question"),
                     }
+                    state.configuration["agentic_intent_control"] = preflight.get(
+                        "intent_control", {}
+                    )
+                    state.configuration["agentic_query_rewrite"] = preflight.get(
+                        "query_rewrite_control",
+                        {
+                            "proposed_query": state.normalized_query,
+                            "validated_query": state.normalized_query,
+                            "adjustments": [],
+                        },
+                    )
                 except DecisionProviderError as exc:
                     self._record_model_fallback(state, "agentic_preflight", exc)
                     if not self.settings.agentic_fallback_to_portable:
@@ -601,6 +647,11 @@ class AgentWorkflow:
                 {
                     "task_type": state.task_type.value,
                     "decision_source": "llm_structured" if self.agentic_graph else "deterministic_rules",
+                    **(
+                        state.configuration.get("agentic_intent_control", {})
+                        if self.agentic_graph
+                        else {}
+                    ),
                 },
             )
 
@@ -746,14 +797,77 @@ class AgentWorkflow:
                 equipment_model=manual_arguments.get("equipment"),
             ),
         )
+        evidence_rejections = {
+            citation.document_id: diagnostic_evidence_rejection_reason(
+                citation.document_type,
+                "%s\n%s" % (citation.title, citation.excerpt),
+            )
+            for citation in manual_evidence
+        }
+        rejected_manual_evidence = [
+            citation
+            for citation in manual_evidence
+            if evidence_rejections[citation.document_id]
+        ]
+        manual_evidence = [
+            citation
+            for citation in manual_evidence
+            if not evidence_rejections[citation.document_id]
+        ]
+        state.configuration["diagnostic_evidence_filter"] = {
+            "policy": "exclude_untrusted_from_judge_and_citations",
+            "rejected": [
+                {
+                    "document_id": citation.document_id,
+                    "title": citation.title,
+                    "document_type": citation.document_type,
+                    "reason": evidence_rejections[citation.document_id],
+                    "excerpt_sha256": hashlib.sha256(
+                        citation.excerpt.encode("utf-8")
+                    ).hexdigest(),
+                }
+                for citation in rejected_manual_evidence
+            ],
+        }
+        if rejected_manual_evidence:
+            self._event(
+                state,
+                "evidence.quarantined",
+                {
+                    "count": len(rejected_manual_evidence),
+                    "documents": state.configuration["diagnostic_evidence_filter"][
+                        "rejected"
+                    ],
+                },
+            )
         matches = lookup["matches"]
+        highest_alarm_risk = (
+            max(
+                (RiskLevel(record["risk_level"]) for record in matches),
+                key=lambda item: RISK_PRIORITY[item],
+            )
+            if matches
+            else None
+        )
         structured_evidence = [
             self.alarm_codes.citation(record, lookup["status"]) for record in matches
         ]
         seen = {citation.document_id for citation in structured_evidence}
-        state.retrieved_evidence = structured_evidence + [
+        adopted_manual_evidence = [
             citation for citation in manual_evidence if citation.document_id not in seen
         ][:2]
+        if not matches:
+            state.configuration["diagnostic_evidence_filter"]["not_adopted"] = [
+                {
+                    "document_id": citation.document_id,
+                    "title": citation.title,
+                    "document_type": citation.document_type,
+                    "reason": "no_structured_alarm_match",
+                }
+                for citation in adopted_manual_evidence
+            ]
+            adopted_manual_evidence = []
+        state.retrieved_evidence = structured_evidence + adopted_manual_evidence
         sufficient = lookup["status"] in {
             "exact_match",
             "brand_match_model_unverified",
@@ -769,8 +883,24 @@ class AgentWorkflow:
             "sufficient": sufficient,
             "match_count": len(matches),
             "available_scopes": lookup["available_scopes"],
+            "rejected_untrusted_evidence_count": len(rejected_manual_evidence),
         }
-        llm_supported = self._agentic_evidence_supported(state)
+        llm_supported = None
+        if self.agentic_graph and structured_evidence and highest_alarm_risk not in {
+            RiskLevel.high,
+            RiskLevel.critical,
+        }:
+            state.evidence_details["llm_evidence_scope"] = "structured_alarm_only"
+            llm_supported = self._agentic_evidence_supported(state, structured_evidence)
+        elif self.agentic_graph:
+            state.evidence_details["llm_support"] = {
+                "supported": None,
+                "skipped": (
+                    "deterministic_high_risk"
+                    if highest_alarm_risk in {RiskLevel.high, RiskLevel.critical}
+                    else "no_structured_alarm_evidence"
+                ),
+            }
         if llm_supported is False:
             sufficient = False
             state.evidence_details["sufficient"] = False
@@ -790,24 +920,27 @@ class AgentWorkflow:
             {
                 "query": state.normalized_query,
                 "evidence_sufficient": sufficient,
-                "alarm_risk": matches[0]["risk_level"] if matches else None,
+                "alarm_risk": highest_alarm_risk.value if highest_alarm_risk else None,
             },
             lambda: check_safety(state.normalized_query, evidence_sufficient=sufficient),
         )
-        if matches:
-            alarm_risk = RiskLevel(matches[0]["risk_level"])
-            risk_order = {
-                RiskLevel.low: 0,
-                RiskLevel.medium: 1,
-                RiskLevel.high: 2,
-                RiskLevel.critical: 3,
-            }
-            if risk_order[alarm_risk] > risk_order[safety.risk_level]:
+        if highest_alarm_risk:
+            if RISK_PRIORITY[highest_alarm_risk] > RISK_PRIORITY[safety.risk_level]:
                 safety = SafetyDecision(
-                    alarm_risk,
-                    alarm_risk in {RiskLevel.high, RiskLevel.critical},
-                    safety.reasons + ["结构化报警记录标记为%s风险" % alarm_risk.value],
-                    safety.restrictions + matches[0]["forbidden_actions"],
+                    highest_alarm_risk,
+                    highest_alarm_risk in {RiskLevel.high, RiskLevel.critical},
+                    safety.reasons
+                    + ["结构化报警记录标记为%s风险" % highest_alarm_risk.value],
+                    list(
+                        dict.fromkeys(
+                            safety.restrictions
+                            + [
+                                action
+                                for record in matches
+                                for action in record["forbidden_actions"]
+                            ]
+                        )
+                    ),
                 )
         state.risk_level = safety.risk_level
         state.current_hypotheses = list(
@@ -818,7 +951,12 @@ class AgentWorkflow:
         self._event(
             state,
             "safety.checked",
-            {"risk_level": safety.risk_level.value, "must_escalate": safety.must_escalate, "reasons": safety.reasons},
+            {
+                "risk_level": safety.risk_level.value,
+                "must_escalate": safety.must_escalate,
+                "reasons": safety.reasons,
+                "restrictions": safety.restrictions,
+            },
         )
         next_action = (
             "teacher_escalation"
@@ -1106,6 +1244,11 @@ class AgentWorkflow:
         self._event(
             state,
             "teacher.escalated",
-            {"escalation_id": escalation_id, "risk_level": decision.risk_level.value, "reason": reason_text},
+            {
+                "escalation_id": escalation_id,
+                "risk_level": decision.risk_level.value,
+                "reason": reason_text,
+                "restrictions": decision.restrictions,
+            },
         )
         return state

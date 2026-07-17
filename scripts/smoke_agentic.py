@@ -58,7 +58,7 @@ def main() -> None:
     from app.agentic_graph import ControlledAgentGraph
     from app.config import Settings
     from app.decision_provider import build_decision_provider
-    from app.workflow import extract_diagnostic_slots
+    from app.workflow import classify_intent, extract_diagnostic_slots
 
     settings = Settings()
     provider = build_decision_provider(settings)
@@ -69,6 +69,7 @@ def main() -> None:
         args.message,
         history=[],
         deterministic_slots=extract_diagnostic_slots(args.message),
+        deterministic_task=classify_intent(args.message),
     )
     summary = {
         "executed_at": datetime.now(timezone.utc).isoformat(),

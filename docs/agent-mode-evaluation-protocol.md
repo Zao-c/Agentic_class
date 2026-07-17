@@ -48,6 +48,8 @@ Protocol v2 同时记录 `proposed_tools`、`executed_tools` 和 `blocked_tools`
 
 评分协议修改不得触发新的模型调用后冒充同一次实验。`scripts/rescore_agent_benchmark.py` 会保留原始观测、原报告规范化文本 SHA（CRLF/CR 统一为 LF）、旧协议版本和 `llm_reexecuted=false`，再生成独立重评分报告。首次三方案运行同时保留 `diagnosis_three_way_engineering_raw_v1.json` 与 `diagnosis_three_way_engineering_rescored_v2_1.json`。
 
+后续 runner 每轮保存 `task_type`、`normalized_query`、`collected_slots`、模型提议工具、实际执行工具、最终状态、fallback、错误和停止原因。受控工作流还记录 `proposed_task / deterministic_task / effective_task`、Query Rewrite 调整，以及被隔离证据的文档 ID、规则和摘要哈希；隔离片段不进入 Evidence LLM、回答素材或公开引用。
+
 受控 Agent 的 portable fallback 不再与纯 LangGraph 结果混算。报告同时给出 `metrics`、`clean_metrics` 和 `fallback_metrics`；只要受控 runner 含 fallback，`comparison_eligible=false`，该轮不得用于“受控 Agent 优于基线”的横向结论。正式模式会关闭受控 fallback，使模型失败显式进入错误率。
 
 ## 指标定义

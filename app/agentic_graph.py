@@ -17,13 +17,29 @@ from app.tool_runtime import TOOL_ALLOWLIST, TOOL_ARGUMENT_SOURCES, ToolPlanVali
 
 
 REQUIRED_DIAGNOSTIC_SLOTS = ["equipment", "error_code", "operating_mode"]
+DIAGNOSTIC_SLOT_LABELS = {
+    "equipment": "设备型号",
+    "error_code": "报警码",
+    "operating_mode": "运行模式",
+    "controller_version": "控制器版本",
+}
+RESTRICTED_QUERY_ACTION_TERMS = (
+    "robot_control",
+    "打开控制柜",
+    "旁路安全",
+    "强制运动",
+    "关闭安全联锁",
+)
 class GraphState(TypedDict, total=False):
     message: str
     history: List[Dict[str, Any]]
     deterministic_slots: Dict[str, str]
+    deterministic_task: str
     slot_proposal: Dict[str, Any]
     task_type: str
+    intent_control: Dict[str, Any]
     normalized_query: str
+    query_rewrite_control: Dict[str, Any]
     collected_slots: Dict[str, str]
     field_provenance: Dict[str, str]
     missing_slots: List[str]
@@ -98,7 +114,29 @@ class ControlledAgentGraph:
             },
         )
         value = call.value
-        return {"task_type": value.task_type.value, "decisions": self._append(state, call)}
+        proposed_task = value.task_type
+        deterministic_task = TaskType(
+            state.get("deterministic_task", proposed_task.value)
+        )
+        effective_task = proposed_task
+        override_reason = None
+        if (
+            deterministic_task == TaskType.fault_diagnosis
+            and proposed_task != TaskType.fault_diagnosis
+        ):
+            effective_task = deterministic_task
+            override_reason = "deterministic_fault_continuity_guard"
+        return {
+            "task_type": effective_task.value,
+            "intent_control": {
+                "proposed_task": proposed_task.value,
+                "deterministic_task": deterministic_task.value,
+                "effective_task": effective_task.value,
+                "overridden": override_reason is not None,
+                "override_reason": override_reason,
+            },
+            "decisions": self._append(state, call),
+        }
 
     def _rewrite(self, state: GraphState) -> Dict[str, Any]:
         call = self.provider.decide(
@@ -157,10 +195,64 @@ class ControlledAgentGraph:
             if name not in slots and name in accepted:
                 slots[name] = accepted[name]
         missing = [name for name in REQUIRED_DIAGNOSTIC_SLOTS if name not in slots]
+        proposed_query = state["normalized_query"].strip()
+        source_text = "%s\n%s" % (
+            state["message"],
+            "\n".join(item.get("message", "") for item in state.get("history", [])),
+        )
+        invented_restricted_terms = [
+            term
+            for term in RESTRICTED_QUERY_ACTION_TERMS
+            if _compact(term) in _compact(proposed_query)
+            and _compact(term) not in _compact(source_text)
+        ]
+        validated_query = (
+            state["message"].strip() if invented_restricted_terms else proposed_query
+        )
+        adjustments: List[Dict[str, Any]] = []
+        if invented_restricted_terms:
+            adjustments.append(
+                {
+                    "action": "replaced_ungrounded_restricted_rewrite",
+                    "terms": invented_restricted_terms,
+                    "reason": "restricted_action_not_present_in_user_or_history",
+                }
+            )
+        for name in ("equipment", "error_code", "operating_mode", "controller_version"):
+            value = slots.get(name)
+            if value and _compact(value) not in _compact(validated_query):
+                validated_query = "%s；%s" % (validated_query, value)
+                adjustments.append(
+                    {
+                        "action": "added_verified_slot",
+                        "slot": name,
+                        "value": value,
+                        "reason": "query_rewrite_omitted_grounded_fact",
+                    }
+                )
+        if missing:
+            missing_marker = "未确认槽位：%s" % "、".join(
+                DIAGNOSTIC_SLOT_LABELS[name] for name in missing
+            )
+            if _compact(missing_marker) not in _compact(validated_query):
+                validated_query = "%s；%s" % (validated_query, missing_marker)
+                adjustments.append(
+                    {
+                        "action": "added_missing_slot_marker",
+                        "slots": missing,
+                        "reason": "preserve_diagnostic_uncertainty",
+                    }
+                )
         return {
             "collected_slots": slots,
             "field_provenance": provenance,
             "missing_slots": missing,
+            "normalized_query": validated_query,
+            "query_rewrite_control": {
+                "proposed_query": proposed_query,
+                "validated_query": validated_query,
+                "adjustments": adjustments,
+            },
         }
 
     def _clarify(self, state: GraphState) -> Dict[str, Any]:
@@ -214,7 +306,7 @@ class ControlledAgentGraph:
         }
         slot_provenance = state.get("field_provenance", {})
         provenance = {
-            "normalized_query": "llm_structured_query_rewrite",
+            "normalized_query": "llm_rewrite_with_deterministic_slot_validation",
             **{
                 "slots.%s" % name: source
                 for name, source in slot_provenance.items()
@@ -241,12 +333,19 @@ class ControlledAgentGraph:
         message: str,
         history: List[Dict[str, Any]],
         deterministic_slots: Dict[str, str],
+        deterministic_task: TaskType | str | None = None,
     ) -> GraphState:
+        task_value = (
+            deterministic_task.value
+            if isinstance(deterministic_task, TaskType)
+            else deterministic_task
+        )
         return self.graph.invoke(
             {
                 "message": message,
                 "history": history,
                 "deterministic_slots": deterministic_slots,
+                **({"deterministic_task": task_value} if task_value else {}),
                 "decisions": [],
             },
             config={"recursion_limit": self.settings.max_agent_steps},

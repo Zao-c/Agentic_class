@@ -696,6 +696,37 @@ class WorkflowBenchmarkRunner:
                 "stop_reason": final.stop_reason,
                 "effective_agent_profile": final.configuration.get("effective_agent_profile"),
                 "decision_count": sum(len(state.decision_history) for state in states),
+                "turn_count": len(states),
+                "turn_observations": [
+                    {
+                        "turn": index,
+                        "task_type": item.task_type.value,
+                        "normalized_query": item.normalized_query,
+                        "collected_slots": item.collected_slots,
+                        "proposed_tools": (
+                            [
+                                tool.get("name", "")
+                                for tool in item.configuration.get(
+                                    "agentic_preflight", {}
+                                ).get("proposed_tools", [])
+                            ]
+                            or list(item.tool_plan)
+                        ),
+                        "executed_tools": [
+                            tool["tool_name"] for tool in item.tool_history
+                        ],
+                        "final_status": item.final_status.value,
+                        "fallback_used": any(
+                            decision.get("fallback_used", False)
+                            for decision in item.decision_history
+                        )
+                        or item.configuration.get("effective_agent_profile")
+                        == "portable-fallback",
+                        "error": None,
+                        "stop_reason": item.stop_reason,
+                    }
+                    for index, item in enumerate(states, start=1)
+                ],
             },
         )
 
