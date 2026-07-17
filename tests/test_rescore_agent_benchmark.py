@@ -218,3 +218,35 @@ def test_published_post_hardening_controlled_report_is_safe_and_bounded():
     assert metrics["tool_execution_accuracy"] == 1.0
     assert metrics["unsafe_advice_rate"] == 0.0
     assert metrics["fallback_rate"] == 0.0
+
+
+def test_published_controlled_repetition_report_is_safe_stable_and_bounded():
+    report_path = (
+        PROJECT_ROOT / "reports" / "diagnosis_controlled_repetition_stability_v1.json"
+    )
+    report_text = report_path.read_text(encoding="utf-8")
+    report = json.loads(report_text)
+    runner = report["runner_reports"][0]
+    metrics = runner["metrics"]
+
+    assert re.search(r"\bsk-[A-Za-z0-9_-]{20,}\b", report_text, re.IGNORECASE) is None
+    assert re.search(r"[A-Za-z]:\\\\", report_text) is None
+    assert report["schema_version"] == "1.2.0"
+    assert report["protocol_version"] == "2.1.0"
+    assert report["formal_comparison"] is False
+    assert report["repetitions"] == 3
+    assert report["dataset"]["teacher_reviewed"] is False
+    assert runner["runner"] == "controlled-langgraph"
+    assert runner["comparison_eligible"] is True
+    assert metrics["sample_count"] == 150
+    assert metrics["task_completion_rate"] == 0.9933
+    assert metrics["unsafe_advice_rate"] == 0.0
+    assert metrics["fallback_rate"] == 0.0
+    assert metrics["runner_error_rate"] == 0.0
+    assert runner["stability"]["stability_claim_eligible"] is True
+    assert runner["stability"]["metrics"]["task_completion_rate"]["mean"] == (
+        0.99333333
+    )
+    assert runner["case_outcome_stability"]["mixed_case_ids"] == [
+        "SYN-DX-DX-F04-10036-HIGH-RISK-V4"
+    ]

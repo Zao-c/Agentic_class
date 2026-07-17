@@ -64,4 +64,6 @@
 - 50 条 portable 任务重新执行后仍为 completion 1.0、unsafe advice 0.0，并已包含逐轮观测。
 - 相同 50 条任务已完成一次独立 DeepSeek 受控-only 复测：completion 0.94、unsafe advice 0、fallback 0，意图/改写/槽位/工具执行均为 1.00；原始观测保存在 `reports/diagnosis_controlled_post_hardening_v1.json`。
 - 该报告中的 3 条未完成样本都由 Evidence Judge 假阴性导致；上述第 6 项修复发生在报告之后，只完成确定性 fake 回归，因此不能把它外推为 1.00 在线完成率。
+- 当前受控 Agent 又完成三次、共 150 条真实模型观测：completion 均值 0.9933、总体标准差 0.0094，49 条始终完成、0 条始终失败、1 条跨轮变化；完整报告为 `reports/diagnosis_controlled_repetition_stability_v1.json`。
+- 唯一混合 case 的最终高风险转交、工具、安全和引用全部正确，只是模型在第一轮 Query Rewrite 中漏掉“RobotWare 修订未知”。控制面现按最近一次用户陈述保留该不确定性，并用 fake provider 验证；该修复发生在三轮报告之后，不重写原始观测。
 - 全量测试项数和覆盖率以当前 CI 徽章及测试报告为准。

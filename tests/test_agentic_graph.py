@@ -158,6 +158,30 @@ class RejectingEvidenceProvider(FakeStructuredProvider):
         return base
 
 
+class OmittedVersionUncertaintyProvider(FakeStructuredProvider):
+    """Drop RobotWare uncertainty so the deterministic rewrite gate must restore it."""
+
+    def decide(
+        self,
+        node: str,
+        schema: Type[BaseModel],
+        system_instruction: str,
+        payload: Dict[str, Any],
+    ) -> DecisionCall:
+        base = super().decide(node, schema, system_instruction, payload)
+        if schema is QueryRewriteDecision and "RobotWare" in payload.get("message", ""):
+            value = QueryRewriteDecision(
+                normalized_query="ABB IRB120 控制器 IRC5 手动模式 报警 10036 故障诊断",
+                used_history=True,
+                decision_basis="模拟遗漏软件版本不确定性",
+            )
+            return DecisionCall(
+                value,
+                {**base.trace, "output": value.model_dump(mode="json")},
+            )
+        return base
+
+
 class StaleHistoryStructuredProvider(FakeStructuredProvider):
     """Actively proposes withdrawn history so the deterministic gate is exercised."""
 
@@ -715,6 +739,44 @@ def test_authoritative_exact_match_overrides_model_evidence_false_negative(
             "effective_supported": True,
             "reason": "authoritative_exact_match_control_plane",
         }
+
+
+def test_query_rewrite_preserves_latest_robotware_version_uncertainty(tmp_path: Path):
+    provider = OmittedVersionUncertaintyProvider()
+    with _agentic_client(tmp_path, provider, use_public_alarms=True) as client:
+        first = client.post(
+            "/api/v1/chat",
+            json={
+                "session_id": "agentic-version-uncertainty",
+                "user_id": "student-version-uncertainty",
+                "message": "请处理 ABB IRB120 报警 10036。",
+            },
+        ).json()
+        client.get(
+            "/api/v1/runs/%s" % first["run_id"],
+            headers={"X-User-ID": "student-version-uncertainty"},
+        )
+        second = client.post(
+            "/api/v1/chat",
+            json={
+                "session_id": "agentic-version-uncertainty",
+                "user_id": "student-version-uncertainty",
+                "message": "控制器 IRC5，为手动模式，RobotWare 修订未知。",
+            },
+        ).json()
+        trace = client.get(
+            "/api/v1/traces/%s" % second["request_id"],
+            headers={"X-Role": "teacher"},
+        ).json()
+
+        assert "RobotWare版本未确认" in trace["normalized_query"]
+        adjustments = trace["state"]["configuration"]["agentic_query_rewrite"][
+            "adjustments"
+        ]
+        assert any(
+            item["action"] == "added_grounded_version_uncertainty"
+            for item in adjustments
+        )
 
 
 def test_agentic_query_gate_rejects_model_invented_restricted_actions(tmp_path: Path):

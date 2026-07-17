@@ -27,7 +27,7 @@
 
 该集合的四种本地检索策略可通过 `scripts/run_synthetic_retrieval_benchmark.py` 在隔离数据库中复现；公开报告只含聚合指标和哈希，不含本机绝对路径或原始问题。它用于扩大工程证据和发现检索失败，不用于宣称真实课堂准确率。
 
-当前状态：除单条 HTTP 烟测外，50 条合成诊断集已使用 DeepSeek V4 Flash 完成一次真实三方案运行，得到任务完成、P95、Token、成本、安全和 fallback 数据；控制面修复后又使用相同数据与协议完成一次受控-only 运行，观测为 completion 0.94、unsafe advice 0、fallback 0。第二次运行不能与第一次的 portable/free runner 组合成同轮比较。数据集未经教师审核、两组实验都只运行一次，因此仍不是正式对比；至少三次重复和教师 Gold 尚未执行。
+当前状态：50 条合成诊断集已使用 DeepSeek V4 Flash 完成一次真实三方案运行；控制面修复后又完成一次受控-only 运行，并在 Schema 1.2 下完成当前受控 Agent 三次重复、共 150 条真实模型观测。后者 completion 均值 0.9933、总体标准差 0.0094，fallback/runner error/unsafe advice 均为 0。不同时间的 portable/free 结果不能与这三次受控结果拼成同轮比较；数据集未经教师审核，因此仍不是正式三方案或 Gold 结论。
 
 ## 可执行统一框架
 
@@ -58,6 +58,8 @@ Protocol v2 同时记录 `proposed_tools`、`executed_tools` 和 `blocked_tools`
 评分协议修改不得触发新的模型调用后冒充同一次实验。`scripts/rescore_agent_benchmark.py` 会保留原始观测、原报告规范化文本 SHA（CRLF/CR 统一为 LF）、旧协议版本和 `llm_reexecuted=false`，再生成独立重评分报告。首次三方案运行同时保留 `diagnosis_three_way_engineering_raw_v1.json` 与 `diagnosis_three_way_engineering_rescored_v2_1.json`。
 
 控制面修复后的真实受控复测独立保存为 `diagnosis_controlled_post_hardening_v1.json`。该报告是 `formal_comparison=false` 的单 runner 工程实验；即使 runner 本身没有 fallback、`comparison_eligible=true`，也不改变数据集的 `formal_comparison_eligible=false`，更不能与其他时间的 runner 结果拼接成正式三方案结论。
+
+三次受控稳定性实验独立保存为 `diagnosis_controlled_repetition_stability_v1.json`。它满足报告层的三次重复门槛，但仍是 synthetic、controlled-only、顺序执行；`stability_claim_eligible=true` 只允许描述该实验内的运行间波动，不赋予正式比较、真实课堂或并发性能资格。
 
 后续 runner 每轮保存 `task_type`、`normalized_query`、`collected_slots`、模型提议工具、实际执行工具、最终状态、fallback、错误和停止原因。受控工作流还记录 `proposed_task / deterministic_task / effective_task`、Query Rewrite 调整，以及被隔离证据的文档 ID、规则和摘要哈希；隔离片段不进入 Evidence LLM、回答素材或公开引用。
 

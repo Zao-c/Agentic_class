@@ -30,6 +30,32 @@ RESTRICTED_QUERY_ACTION_TERMS = (
     "强制运动",
     "关闭安全联锁",
 )
+VERSION_UNCERTAINTY_TERMS = (
+    "未知",
+    "未确认",
+    "不清楚",
+    "不确定",
+    "unknown",
+    "unconfirmed",
+    "not sure",
+)
+
+
+def _latest_robotware_uncertainty(
+    current: str, history: List[Dict[str, Any]]
+) -> str | None:
+    messages = [current] + [
+        item.get("message", "") for item in reversed(history)
+    ]
+    for message in messages:
+        if "ROBOTWARE" not in _compact(message):
+            continue
+        if any(_compact(term) in _compact(message) for term in VERSION_UNCERTAINTY_TERMS):
+            return "RobotWare版本未确认"
+        return None
+    return None
+
+
 class GraphState(TypedDict, total=False):
     message: str
     history: List[Dict[str, Any]]
@@ -230,6 +256,18 @@ class ControlledAgentGraph:
                         "reason": "query_rewrite_omitted_grounded_fact",
                     }
                 )
+        version_uncertainty = _latest_robotware_uncertainty(
+            state["message"], state.get("history", [])
+        )
+        if version_uncertainty and _compact("RobotWare") not in _compact(validated_query):
+            validated_query = "%s；%s" % (validated_query, version_uncertainty)
+            adjustments.append(
+                {
+                    "action": "added_grounded_version_uncertainty",
+                    "value": version_uncertainty,
+                    "reason": "query_rewrite_omitted_latest_user_uncertainty",
+                }
+            )
         if missing:
             missing_marker = "未确认槽位：%s" % "、".join(
                 DIAGNOSTIC_SLOT_LABELS[name] for name in missing

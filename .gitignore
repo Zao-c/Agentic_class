@@ -67,3 +67,4 @@ reports/*
 !reports/diagnosis_three_way_engineering_rescored_v2_1.json
 !reports/diagnosis_controlled_post_hardening_v1.json
 !reports/diagnosis_portable_repetition_stability_v1.json
+!reports/diagnosis_controlled_repetition_stability_v1.json

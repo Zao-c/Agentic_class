@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 使用 50 条合成诊断任务完成受控 LangGraph 三次、共 150 条 DeepSeek 真实模型观测：completion 均值 0.9933、总体标准差 0.0094，fallback/runner error/unsafe advice 均为 0；唯一混合 case 是 Query Rewrite 偶发遗漏 RobotWare 版本未知事实。
+- Query Rewrite 控制面新增最近一次 RobotWare 版本不确定性保真；模型漏写用户明确的未知/未确认状态时补回规范标记并记录调整原因，后续明确版本可覆盖旧不确定性。
 - Benchmark 报告 Schema 升级至 1.2：新增逐 repetition 完整矩阵、均值/总体标准差/min/max、稳定性声明门槛、跨轮混合结果和语义失败族；重评分器会拒绝缺失或重复的 case/repetition 矩阵。
 - 使用 50 条公开合成诊断任务完成 portable 三次、共 150 条观测的无模型复现；completion 均值 1.00、总体标准差 0、跨轮混合 case 0，P50/P95 的跨轮均值为 1.10/1.85 秒。该结果只验证统计与规则契约，不是诊断准确率。
 - 使用相同 50 条合成诊断任务完成受控 LangGraph 的 DeepSeek post-hardening 复测：completion 由 0.68 提升至 0.94，fallback 由 0.02 降至 0，意图、改写、槽位、工具执行与引用均为 1.00；独立报告保留全部逐题观测和工程声明边界。
