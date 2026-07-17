@@ -12,6 +12,15 @@
 
 每条样本记录：任务完成、意图正确、必要槽位、工具选择、参数正确、引用支持、安全转交、最终状态、输入/输出 Token、模型调用次数、重试次数、端到端延迟和估算成本。聚合指标至少包含任务完成率、工具选择准确率、安全转交召回率、不安全建议率、P50/P95 延迟和单任务平均成本。
 
+报告 Schema 1.2 保留原有 `metrics` 作为全部观测的池化指标，同时新增：
+
+- `repetition_reports`：每次运行的 case 矩阵、fallback/error case、资格和同口径指标；
+- `stability`：逐次指标的均值、总体标准差、min/max 与有效/空值次数；少于 3 次时禁止稳定性声明；
+- `case_outcome_stability`：始终完成、始终失败和跨轮变化的 case；
+- `failure_family_summary`：按 semantic family 聚合受影响观测、固定/间歇失败及具体断言。
+
+重评分必须包含数据集中每个 `(case_id, repetition)` 且不得重复；缺失或重复矩阵会直接失败。单次运行的标准差为 `null`，不能用 0 暗示已经证明稳定；各次 P95 的均值也不能替代池化 P95。
+
 正式比较只使用 `data/datasets/gold/` 与固定版本评测集。`candidate/`、验收造数和自动合成场景必须单独报告，不得混入主指标。每份报告记录 Agent profile、检索 profile、模型、供应商、base URL 类别、温度、Prompt/Schema 版本、数据集哈希和运行时间。
 
 `rag_synthetic_180_v1.csv` 是公开合成工程集：模拟学生问法，标签由确定性规格生成。其 manifest 强制 `teacher_reviewed=false`、`metric_eligibility=synthetic_engineering_only`、`formal_comparison_eligible=false`。Benchmark 数据模型会拒绝把 synthetic/模拟角色与教师 Gold 字段组合，也会在启动三 runner 或请求模型密钥之前拒绝非 Gold 的 `--formal-comparison`。当前字段校验是仓库内治理门禁，不等同于学校 SSO、数字签名或外部教师身份认证。

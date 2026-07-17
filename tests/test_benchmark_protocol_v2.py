@@ -187,6 +187,11 @@ def test_controlled_fallback_is_ineligible_and_metrics_are_separated():
     assert report["metrics"]["sample_count"] == 2
     assert report["clean_metrics"]["sample_count"] == 1
     assert report["fallback_metrics"]["sample_count"] == 1
+    repetitions = {item["repetition"]: item for item in report["repetition_reports"]}
+    assert repetitions[1]["comparison_eligible"] is True
+    assert repetitions[1]["fallback_case_ids"] == []
+    assert repetitions[2]["comparison_eligible"] is False
+    assert repetitions[2]["fallback_case_ids"] == ["V2-1"]
 
 
 class _FailedRunner:

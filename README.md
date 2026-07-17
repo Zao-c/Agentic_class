@@ -18,7 +18,7 @@
 | 工具参数真的参与执行 | Trace 同时保存 `proposed_plan`、`validated_plan`、`executed_plan`；伪造、越权和无来源参数会被删除、覆盖或拒绝 |
 | 三类任务工程闭环 | 问答、逐槽故障诊断、辅导出题/批改均进入 Run、SSE、Trace、反馈和回归链路 |
 | 数据治理而非造 Gold | [132 条候选快照聚合证据](data/datasets/candidate-course-qa-summary-v1.json)可公开核验，题目内容仍保持私有；只有具名教师审核、三项检查和哈希复验通过后才能冻结 Gold |
-| 可复现与可发布 | 140 项本地测试通过、`app/` 覆盖率 91%；公开仓库包含 180 条合成检索任务、50 条多轮诊断任务与隔离运行器 |
+| 可复现与可发布 | 142 项本地测试通过、`app/` 覆盖率 91%；公开仓库包含 180 条合成检索任务、50 条多轮诊断任务与隔离运行器 |
 
 > **证据边界：** 正式 RAG/诊断/辅导评测仍只有 12/7/4 条；结构化报警库现有 9 条来源核验记录，但学校实机版本和教师审核仍未确认。真实学员 bad case 为 0，教师确认 Gold 为 0。单条 LLM 烟测只证明链路能运行；下表的 portable 数据使用公开合成语料和工程冻结题，也不代表生产准确率。
 
@@ -58,6 +58,8 @@ Portable 在仅使用该公开摘要目录时完成 50 条单次实跑：[原始
 | 不安全建议率 | 0.0000 |
 | P50 / P95 | 935.64 / 1392.91 ms |
 
+报告 Schema 1.2 又完成了 [3 次重复、150 条观测](reports/diagnosis_portable_repetition_stability_v1.json)：三次 completion 均为 1.00、总体标准差 0、跨轮结果变化 case 为 0；各次 P50 的均值/总体标准差为 1100.09/120.73 ms，P95 为 1847.69/267.28 ms。延迟波动被保留，不用池化 P95 冒充跨轮稳定性。
+
 > 这里的 100% 是“合成任务符合当前可执行协议”的契约回归结果，不是故障诊断准确率。数据没有真实学员、教师审核或学校设备清单，且 50 条任务只覆盖 9 条结构化记录中的 `38213` 与 `10036`；因此它被强制标记为 `synthetic_engineering_only`，不能用于 Gold 或正式三方案质量结论。CI 会重新执行全部 50 条，并把 completion 1.0、unsafe advice 0.0 作为工程契约门禁。
 
 ```powershell
@@ -93,7 +95,7 @@ flowchart LR
 
 ## 三方案 Benchmark
 
-统一 Harness 已支持 `portable`、隔离的 `free-llm-agent` 和 `controlled-langgraph`，记录意图、Query Rewrite、槽位、工具、完成率、引用、拒答、安全转交、Token、成本、P50/P95 与 fallback。
+统一 Harness 已支持 `portable`、隔离的 `free-llm-agent` 和 `controlled-langgraph`，记录意图、Query Rewrite、槽位、工具、完成率、引用、拒答、安全转交、Token、成本、P50/P95 与 fallback。Schema 1.2 会额外输出逐 repetition 完整性、均值/总体标准差/min/max、跨轮混合结果和语义失败族；不足 3 次时机器标记 `stability_claim_eligible=false`。
 
 Benchmark Protocol v2.1.0 已统一三个 runner 的逐轮交互口径；自由 Agent 的引用只从实际工具结果提取，模型自报引用不参与评分；模型提议工具与控制平面实际执行工具按不同契约评分。受控 Agent 一旦发生 portable fallback，会单独进入 `fallback_metrics` 并取消横向比较资格。
 

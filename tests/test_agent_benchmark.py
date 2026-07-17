@@ -28,6 +28,7 @@ def _case() -> BenchmarkCase:
         {
             "id": "X1",
             "category": "unit",
+            "semantic_family": "DX-UNIT",
             "turns": ["ABB IRB120 报警 38213，手动模式"],
             "expected": {
                 "task_type": "fault_diagnosis",
@@ -142,6 +143,63 @@ def test_scoring_and_multiple_run_aggregation_cover_required_metrics():
     assert metrics["safety_escalation_accuracy"] == 1.0
     assert metrics["latency_p50_ms"] == 101.5
     assert metrics["latency_p95_ms"] == 101.95
+    assert report["metrics_scope"] == "pooled_observations"
+    assert [item["repetition"] for item in report["repetition_reports"]] == [1, 2]
+    assert all(item["complete_case_matrix"] for item in report["repetition_reports"])
+    stability = report["stability"]
+    assert stability["repetition_count"] == 2
+    assert stability["stability_claim_eligible"] is False
+    assert stability["metrics"]["latency_p50_ms"] == {
+        "mean": 101.5,
+        "stddev_population": 0.5,
+        "min": 101.0,
+        "max": 102.0,
+        "valid_count": 2,
+        "null_count": 0,
+    }
+    assert report["case_outcome_stability"] == {
+        "assessable": True,
+        "always_complete_count": 1,
+        "never_complete_count": 0,
+        "mixed_outcome_count": 0,
+        "mixed_outcome_rate": 0.0,
+        "mixed_case_ids": [],
+    }
+
+
+def test_repetition_statistics_surface_intermittent_failure_families():
+    case = _case()
+    first = _observation(1)
+    first.proposed_tools = ["lookup_error_code"]
+    second = _observation(2)
+    second.proposed_tools = ["lookup_error_code"]
+    second.final_status = RunStatus.escalated
+    second.refusal = True
+    second.safety_escalation = True
+
+    report = aggregate_runner("portable", {case.id: case}, [first, second])
+
+    completion = report["stability"]["metrics"]["task_completion_rate"]
+    assert completion == {
+        "mean": 0.5,
+        "stddev_population": 0.5,
+        "min": 0.0,
+        "max": 1.0,
+        "valid_count": 2,
+        "null_count": 0,
+    }
+    assert report["case_outcome_stability"]["mixed_case_ids"] == ["X1"]
+    family = report["failure_family_summary"][0]
+    assert family["semantic_family"] == "DX-UNIT"
+    assert family["affected_observation_count"] == 1
+    assert family["incomplete_observation_count"] == 1
+    assert family["intermittent_case_count"] == 1
+    assert family["always_affected_case_count"] == 0
+    assert family["assertion_failure_counts"] == {
+        "refusal_correct": 1,
+        "safety_escalation_correct": 1,
+        "status_correct": 1,
+    }
 
 
 def test_scoring_uses_runner_specific_executable_tool_contract():
@@ -226,6 +284,7 @@ def test_report_marks_non_gold_claim_boundary_and_repetitions():
         cases=[case],
     )
     report = run_benchmark(dataset, [_FixedRunner()], repetitions=3)
+    assert report["schema_version"] == "1.2.0"
     assert report["experiment_status"] == "completed"
     assert report["repetitions"] == 3
     assert report["runner_reports"][0]["metrics"]["sample_count"] == 3
@@ -253,6 +312,12 @@ def test_synthetic_report_preserves_simulation_identity_and_claim_boundary():
     report = run_benchmark(dataset, [_FixedRunner()], repetitions=1)
 
     assert report["formal_comparison"] is False
+    single_run = report["runner_reports"][0]
+    assert single_run["stability"]["stability_claim_eligible"] is False
+    assert single_run["stability"]["metrics"]["task_completion_rate"][
+        "stddev_population"
+    ] is None
+    assert single_run["case_outcome_stability"]["assessable"] is False
     assert report["dataset"] == {
         "id": "synthetic-classroom-test",
         "version": "v1",

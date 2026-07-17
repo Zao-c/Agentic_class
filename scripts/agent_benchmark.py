@@ -25,7 +25,7 @@ from app.diagnostic_evaluation import contains_unsafe_advice
 from app.schemas import AgentState, RunStatus, TaskType
 
 
-BENCHMARK_SCHEMA_VERSION = "1.1.0"
+BENCHMARK_SCHEMA_VERSION = "1.2.0"
 BENCHMARK_PROTOCOL_VERSION = "2.1.0"
 READ_ONLY_FREE_AGENT_TOOLS = {
     "course_retrieval",
@@ -458,6 +458,232 @@ def _metrics_from_scored(
     }
 
 
+STABILITY_METRICS = (
+    "intent_accuracy",
+    "query_rewrite_effectiveness",
+    "slot_extraction_accuracy",
+    "tool_proposal_accuracy",
+    "tool_execution_accuracy",
+    "task_completion_rate",
+    "citation_correctness",
+    "refusal_accuracy",
+    "safety_escalation_accuracy",
+    "unsafe_advice_rate",
+    "average_tokens",
+    "average_cost_usd",
+    "latency_p50_ms",
+    "latency_p95_ms",
+    "fallback_rate",
+    "runner_error_rate",
+    "unauthorized_tool_block_rate",
+)
+
+
+def _repetition_reports(
+    runner_name: str,
+    expected_case_ids: set[str],
+    scored: Sequence[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    reports = []
+    repetitions = sorted(
+        {entry["observation"].repetition for entry in scored}
+    )
+    for repetition in repetitions:
+        repetition_scored = [
+            entry
+            for entry in scored
+            if entry["observation"].repetition == repetition
+        ]
+        clean_scored = [
+            entry
+            for entry in repetition_scored
+            if not entry["observation"].fallback_used
+        ]
+        fallback_scored = [
+            entry
+            for entry in repetition_scored
+            if entry["observation"].fallback_used
+        ]
+        fallback_contaminated = (
+            runner_name == "controlled-langgraph" and bool(fallback_scored)
+        )
+        observed_case_ids = {
+            entry["observation"].case_id for entry in repetition_scored
+        }
+        fallback_case_ids = sorted(
+            entry["observation"].case_id for entry in fallback_scored
+        )
+        runner_error_case_ids = sorted(
+            entry["observation"].case_id
+            for entry in repetition_scored
+            if entry["observation"].error is not None
+        )
+        reports.append(
+            {
+                "repetition": repetition,
+                "expected_case_count": len(expected_case_ids),
+                "observed_case_count": len(observed_case_ids),
+                "complete_case_matrix": observed_case_ids == expected_case_ids,
+                "comparison_eligible": not fallback_contaminated,
+                "ineligibility_reasons": (
+                    ["controlled_runner_contains_portable_fallback"]
+                    if fallback_contaminated
+                    else []
+                ),
+                "fallback_case_count": len(fallback_case_ids),
+                "fallback_case_ids": fallback_case_ids,
+                "runner_error_case_count": len(runner_error_case_ids),
+                "runner_error_case_ids": runner_error_case_ids,
+                "metrics": _metrics_from_scored(runner_name, repetition_scored),
+                "clean_metrics": _metrics_from_scored(runner_name, clean_scored),
+                "fallback_metrics": _metrics_from_scored(
+                    runner_name, fallback_scored
+                ),
+            }
+        )
+    return reports
+
+
+def _stability_metrics(
+    repetition_reports: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    stability: Dict[str, Dict[str, Any]] = {}
+    for metric_name in STABILITY_METRICS:
+        values = [
+            float(report["metrics"][metric_name])
+            for report in repetition_reports
+            if report["metrics"].get(metric_name) is not None
+        ]
+        if not values:
+            continue
+        stability[metric_name] = {
+            "mean": round(statistics.mean(values), 8),
+            "stddev_population": (
+                round(statistics.pstdev(values), 8) if len(values) > 1 else None
+            ),
+            "min": round(min(values), 8),
+            "max": round(max(values), 8),
+            "valid_count": len(values),
+            "null_count": len(repetition_reports) - len(values),
+        }
+    return {
+        "aggregation_basis": "unweighted_per_repetition_metrics",
+        "repetition_count": len(repetition_reports),
+        "minimum_repetitions_for_stability_claim": 3,
+        "stability_claim_eligible": len(repetition_reports) >= 3
+        and all(report["complete_case_matrix"] for report in repetition_reports),
+        "metrics": stability,
+    }
+
+
+def _case_outcome_stability(
+    scored: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    outcomes: Dict[str, List[bool]] = {}
+    for entry in scored:
+        outcomes.setdefault(entry["observation"].case_id, []).append(
+            bool(entry["scores"]["task_complete"])
+        )
+    always_complete = sorted(
+        case_id for case_id, values in outcomes.items() if all(values)
+    )
+    never_complete = sorted(
+        case_id for case_id, values in outcomes.items() if not any(values)
+    )
+    mixed = sorted(
+        case_id
+        for case_id, values in outcomes.items()
+        if any(values) and not all(values)
+    )
+    return {
+        "assessable": bool(outcomes)
+        and all(len(values) >= 2 for values in outcomes.values()),
+        "always_complete_count": len(always_complete),
+        "never_complete_count": len(never_complete),
+        "mixed_outcome_count": len(mixed),
+        "mixed_outcome_rate": (
+            round(len(mixed) / len(outcomes), 4) if outcomes else None
+        ),
+        "mixed_case_ids": mixed,
+    }
+
+
+def _failure_family_summary(
+    cases: Dict[str, BenchmarkCase], scored: Sequence[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    family_rows: Dict[tuple[Optional[str], str], Dict[str, Any]] = {}
+    observations_per_case: Dict[str, int] = {}
+    affected_per_case: Dict[str, int] = {}
+    for entry in scored:
+        observation = entry["observation"]
+        scores = entry["scores"]
+        observations_per_case[observation.case_id] = (
+            observations_per_case.get(observation.case_id, 0) + 1
+        )
+        failed_assertions = [
+            name
+            for name, value in scores.items()
+            if name not in {"unsafe_advice", "task_complete"} and value is False
+        ]
+        if scores["unsafe_advice"]:
+            failed_assertions.append("unsafe_advice")
+        if observation.error is not None:
+            failed_assertions.append("runner_error")
+        if not failed_assertions and scores["task_complete"]:
+            continue
+
+        case = cases[observation.case_id]
+        family = (case.semantic_family, case.category)
+        row = family_rows.setdefault(
+            family,
+            {
+                "semantic_family": case.semantic_family,
+                "category": case.category,
+                "affected_observation_count": 0,
+                "incomplete_observation_count": 0,
+                "affected_case_ids": set(),
+                "repetitions": set(),
+                "assertion_failure_counts": {},
+            },
+        )
+        row["affected_observation_count"] += 1
+        row["incomplete_observation_count"] += int(not scores["task_complete"])
+        row["affected_case_ids"].add(observation.case_id)
+        row["repetitions"].add(observation.repetition)
+        affected_per_case[observation.case_id] = (
+            affected_per_case.get(observation.case_id, 0) + 1
+        )
+        for name in failed_assertions:
+            counts = row["assertion_failure_counts"]
+            counts[name] = counts.get(name, 0) + 1
+
+    result = []
+    for _family, row in family_rows.items():
+        affected_case_ids = sorted(row.pop("affected_case_ids"))
+        row["affected_case_count"] = len(affected_case_ids)
+        row["affected_case_ids"] = affected_case_ids
+        row["repetitions"] = sorted(row["repetitions"])
+        row["always_affected_case_count"] = sum(
+            affected_per_case[case_id] == observations_per_case[case_id]
+            for case_id in affected_case_ids
+        )
+        row["intermittent_case_count"] = sum(
+            affected_per_case[case_id] < observations_per_case[case_id]
+            for case_id in affected_case_ids
+        )
+        row["assertion_failure_counts"] = dict(
+            sorted(row["assertion_failure_counts"].items())
+        )
+        result.append(row)
+    return sorted(
+        result,
+        key=lambda item: (
+            -item["affected_observation_count"],
+            item["semantic_family"] or item["category"],
+        ),
+    )
+
+
 def aggregate_runner(
     runner_name: str,
     cases: Dict[str, BenchmarkCase],
@@ -470,8 +696,10 @@ def aggregate_runner(
     clean_scored = [entry for entry in scored if not entry["observation"].fallback_used]
     fallback_scored = [entry for entry in scored if entry["observation"].fallback_used]
     fallback_contaminated = runner_name == "controlled-langgraph" and bool(fallback_scored)
+    repetition_reports = _repetition_reports(runner_name, set(cases), scored)
     return {
         "runner": runner_name,
+        "metrics_scope": "pooled_observations",
         "comparison_eligible": not fallback_contaminated,
         "ineligibility_reasons": (
             ["controlled_runner_contains_portable_fallback"]
@@ -481,6 +709,10 @@ def aggregate_runner(
         "metrics": _metrics_from_scored(runner_name, scored),
         "clean_metrics": _metrics_from_scored(runner_name, clean_scored),
         "fallback_metrics": _metrics_from_scored(runner_name, fallback_scored),
+        "repetition_reports": repetition_reports,
+        "stability": _stability_metrics(repetition_reports),
+        "case_outcome_stability": _case_outcome_stability(scored),
+        "failure_family_summary": _failure_family_summary(cases, scored),
         "cases": [
             {
                 **entry["observation"].model_dump(mode="json"),

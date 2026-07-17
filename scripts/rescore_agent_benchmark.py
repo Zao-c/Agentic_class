@@ -16,6 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from scripts.agent_benchmark import (
     BENCHMARK_PROTOCOL_VERSION,
+    BENCHMARK_SCHEMA_VERSION,
     BenchmarkValidationError,
     RunnerObservation,
     aggregate_runner,
@@ -57,6 +58,9 @@ def rescore(source_path: Path, dataset_path: Path) -> Dict[str, Any]:
         raise BenchmarkValidationError("source report and dataset id do not match")
 
     cases = {case.id: case for case in dataset.cases}
+    repetitions = int(source.get("repetitions", 1))
+    if repetitions < 1:
+        raise BenchmarkValidationError("source report repetitions must be at least one")
     reports: List[Dict[str, Any]] = []
     for raw_runner in source.get("runner_reports", []):
         observations = [
@@ -69,10 +73,18 @@ def rescore(source_path: Path, dataset_path: Path) -> Dict[str, Any]:
             )
             for raw_case in raw_runner.get("cases", [])
         ]
-        observed_ids = {item.case_id for item in observations}
-        if observed_ids != set(cases):
+        observed_keys = [(item.case_id, item.repetition) for item in observations]
+        expected_keys = [
+            (case_id, repetition)
+            for repetition in range(1, repetitions + 1)
+            for case_id in cases
+        ]
+        if (
+            len(observed_keys) != len(set(observed_keys))
+            or set(observed_keys) != set(expected_keys)
+        ):
             raise BenchmarkValidationError(
-                "%s observations do not match the current case ids"
+                "%s observations do not match the complete case/repetition matrix"
                 % raw_runner.get("runner", "unknown")
             )
         reports.append(
@@ -82,6 +94,7 @@ def rescore(source_path: Path, dataset_path: Path) -> Dict[str, Any]:
     rescored = dict(source)
     rescored.update(
         {
+            "schema_version": BENCHMARK_SCHEMA_VERSION,
             "protocol_version": BENCHMARK_PROTOCOL_VERSION,
             "evaluation_run_id": source["evaluation_run_id"] + "_rescored_v2_1",
             "experiment_status": _experiment_status(reports),

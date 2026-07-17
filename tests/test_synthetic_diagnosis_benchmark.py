@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -254,3 +255,36 @@ def test_published_portable_report_matches_tracked_dataset_and_public_corpus():
     assert turns[1]["collected_slots"] == {"operating_mode": "手动模式"}
     assert turns[1]["proposed_tools"] == turns[1]["executed_tools"] == []
     assert turns[1]["final_status"] == "waiting_for_user"
+
+
+def test_published_three_repetition_report_exposes_stability_without_secrets():
+    report_path = (
+        PROJECT_ROOT / "reports/diagnosis_portable_repetition_stability_v1.json"
+    )
+    report_text = report_path.read_text(encoding="utf-8")
+    report = json.loads(report_text)
+    runner = report["runner_reports"][0]
+    stability = runner["stability"]
+
+    assert re.search(r"\bsk-[A-Za-z0-9_-]{20,}\b", report_text) is None
+    assert re.search(r"[A-Za-z]:\\\\", report_text) is None
+    assert report["schema_version"] == "1.2.0"
+    assert report["protocol_version"] == "2.1.0"
+    assert report["formal_comparison"] is False
+    assert report["repetitions"] == 3
+    assert report["dataset"]["teacher_reviewed"] is False
+    assert runner["metrics"]["sample_count"] == 150
+    assert runner["metrics"]["task_completion_rate"] == 1.0
+    assert [item["repetition"] for item in runner["repetition_reports"]] == [
+        1,
+        2,
+        3,
+    ]
+    assert all(item["complete_case_matrix"] for item in runner["repetition_reports"])
+    assert stability["stability_claim_eligible"] is True
+    assert stability["metrics"]["task_completion_rate"]["mean"] == 1.0
+    assert stability["metrics"]["task_completion_rate"][
+        "stddev_population"
+    ] == 0.0
+    assert runner["case_outcome_stability"]["mixed_outcome_count"] == 0
+    assert runner["failure_family_summary"] == []

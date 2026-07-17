@@ -2,9 +2,12 @@ import json
 import re
 from pathlib import Path
 
+import pytest
+
 from app.schemas import RunStatus, TaskType
 from scripts.agent_benchmark import (
     BENCHMARK_PROTOCOL_VERSION,
+    BenchmarkValidationError,
     BenchmarkCase,
     BenchmarkDataset,
     RunnerObservation,
@@ -117,6 +120,7 @@ def test_rescore_reuses_raw_observations_without_model_calls(tmp_path: Path):
     report = rescore(source_path, dataset_path)
 
     metrics = report["runner_reports"][0]["metrics"]
+    assert report["schema_version"] == "1.2.0"
     assert report["protocol_version"] == BENCHMARK_PROTOCOL_VERSION == "2.1.0"
     assert report["rescoring"]["llm_reexecuted"] is False
     assert report["rescoring"]["source_report_sha256"] == normalized_text_sha256(
@@ -129,6 +133,25 @@ def test_rescore_reuses_raw_observations_without_model_calls(tmp_path: Path):
     assert metrics["task_completion_rate"] == 1.0
     assert metrics["unauthorized_tool_block_rate"] == 1.0
     assert metrics["unauthorized_tool_execution_count"] == 0
+    runner_report = report["runner_reports"][0]
+    assert len(runner_report["repetition_reports"]) == 1
+    assert runner_report["stability"]["stability_claim_eligible"] is False
+    assert runner_report["stability"]["metrics"]["task_completion_rate"][
+        "stddev_population"
+    ] is None
+    assert "failure_family_summary" in runner_report
+
+    incomplete_source = {**source, "repetitions": 2}
+    incomplete_path = tmp_path / "incomplete-raw.json"
+    incomplete_path.write_text(
+        json.dumps(incomplete_source, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    with pytest.raises(
+        BenchmarkValidationError,
+        match="complete case/repetition matrix",
+    ):
+        rescore(incomplete_path, dataset_path)
 
 
 def test_published_three_way_reports_preserve_raw_and_rescored_boundaries():

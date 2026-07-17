@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Benchmark 报告 Schema 升级至 1.2：新增逐 repetition 完整矩阵、均值/总体标准差/min/max、稳定性声明门槛、跨轮混合结果和语义失败族；重评分器会拒绝缺失或重复的 case/repetition 矩阵。
+- 使用 50 条公开合成诊断任务完成 portable 三次、共 150 条观测的无模型复现；completion 均值 1.00、总体标准差 0、跨轮混合 case 0，P50/P95 的跨轮均值为 1.10/1.85 秒。该结果只验证统计与规则契约，不是诊断准确率。
 - 使用相同 50 条合成诊断任务完成受控 LangGraph 的 DeepSeek post-hardening 复测：completion 由 0.68 提升至 0.94，fallback 由 0.02 降至 0，意图、改写、槽位、工具执行与引用均为 1.00；独立报告保留全部逐题观测和工程声明边界。
 - 复测发现 3 条权威精确匹配被 Evidence Judge 假阴性转交；控制平面现保留模型否决，但对 `source_verified + exact_match` 采用确定性有效结论，并在 Trace 记录 proposed/effective 与覆盖原因。未核验型号、缺失证据和高风险记录仍 fail-closed。
 - 根据首次三方案真实运行的 16 个受控 Agent 失败逐例修复控制面：LangGraph 分支前增加诊断意图下限、Query Rewrite 槽位保真与受限操作反补造，并把 proposed/effective/override 原因写入 Trace。
