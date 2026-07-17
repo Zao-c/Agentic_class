@@ -901,10 +901,25 @@ class AgentWorkflow:
                     else "no_structured_alarm_evidence"
                 ),
             }
-        if llm_supported is False:
+        authoritative_exact_match = (
+            lookup["status"] == "exact_match"
+            and bool(matches)
+            and all(record["review_status"] == "source_verified" for record in matches)
+        )
+        if llm_supported is False and authoritative_exact_match:
+            state.evidence_details["gate_override"] = {
+                "proposed_supported": False,
+                "effective_supported": True,
+                "reason": "authoritative_exact_match_control_plane",
+            }
+        elif llm_supported is False:
             sufficient = False
             state.evidence_details["sufficient"] = False
-            state.evidence_details["gate_override"] = "llm_could_only_lower_confidence"
+            state.evidence_details["gate_override"] = {
+                "proposed_supported": False,
+                "effective_supported": False,
+                "reason": "llm_lowered_non_authoritative_evidence",
+            }
         self._event(
             state,
             "evidence.judged",

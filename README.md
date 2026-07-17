@@ -18,7 +18,7 @@
 | 工具参数真的参与执行 | Trace 同时保存 `proposed_plan`、`validated_plan`、`executed_plan`；伪造、越权和无来源参数会被删除、覆盖或拒绝 |
 | 三类任务工程闭环 | 问答、逐槽故障诊断、辅导出题/批改均进入 Run、SSE、Trace、反馈和回归链路 |
 | 数据治理而非造 Gold | [132 条候选快照聚合证据](data/datasets/candidate-course-qa-summary-v1.json)可公开核验，题目内容仍保持私有；只有具名教师审核、三项检查和哈希复验通过后才能冻结 Gold |
-| 可复现与可发布 | 138 项本地测试通过、`app/` 覆盖率 91%；公开仓库包含 180 条合成检索任务、50 条多轮诊断任务与隔离运行器 |
+| 可复现与可发布 | 140 项本地测试通过、`app/` 覆盖率 91%；公开仓库包含 180 条合成检索任务、50 条多轮诊断任务与隔离运行器 |
 
 > **证据边界：** 正式 RAG/诊断/辅导评测仍只有 12/7/4 条；结构化报警库现有 9 条来源核验记录，但学校实机版本和教师审核仍未确认。真实学员 bad case 为 0，教师确认 Gold 为 0。单条 LLM 烟测只证明链路能运行；下表的 portable 数据使用公开合成语料和工程冻结题，也不代表生产准确率。
 
@@ -97,7 +97,7 @@ flowchart LR
 
 Benchmark Protocol v2.1.0 已统一三个 runner 的逐轮交互口径；自由 Agent 的引用只从实际工具结果提取，模型自报引用不参与评分；模型提议工具与控制平面实际执行工具按不同契约评分。受控 Agent 一旦发生 portable fallback，会单独进入 `fallback_metrics` 并取消横向比较资格。
 
-50 条合成诊断集已使用 DeepSeek V4 Flash 完成一次真实三方案运行。原始观测保存在 [v2.0 原始报告](reports/diagnosis_three_way_engineering_raw_v1.json)；发现自由 Agent 槽位别名、受控 Agent 提议/执行工具契约和多轮拦截率三项评分口径问题后，在**不重新调用模型**的前提下生成 [v2.1 重评分报告](reports/diagnosis_three_way_engineering_rescored_v2_1.json)。
+50 条合成诊断集已使用 DeepSeek V4 Flash 完成一次真实三方案运行。原始观测保存在 [v2.0 原始报告](reports/diagnosis_three_way_engineering_raw_v1.json)；发现自由 Agent 槽位别名、受控 Agent 提议/执行工具契约和多轮拦截率三项评分口径问题后，在**不重新调用模型**的前提下生成 [v2.1 重评分报告](reports/diagnosis_three_way_engineering_rescored_v2_1.json)。下表是控制面修复前的同轮三方案观测：
 
 | 方案 | 完成率 | 工具提议 / 执行 | 不安全建议 | P50 / P95 | 平均 Token / 估算成本 |
 |---|---:|---:|---:|---:|---:|
@@ -107,7 +107,18 @@ Benchmark Protocol v2.1.0 已统一三个 runner 的逐轮交互口径；自由 
 
 受控 Agent 相比自由 Agent 提升任务完成率并消除了本轮不安全建议，同时平均 Token 和估算成本更低；但它仍显著慢于规则基线，且在撤回污染、资料缺失和多轮改写上失败。受控 runner 有 2% fallback，因此本轮 `comparison_eligible=false`；以上只是单次、合成工程烟测，不是正式质量结论。
 
-该次实验随后进入 bad case 回归：控制平面现已在 LangGraph 分支前阻止明确诊断任务被模型降级，校验 Query Rewrite 是否保留已确认/缺失槽位，隔离含 Prompt 注入特征的检索片段，并按同码多记录的最高风险执行安全转交。以上修改已通过离线 fake 与 portable 回归，但**尚未再次调用 DeepSeek 批量复测**，因此表中在线指标仍保留修复前原始值。
+该次实验随后进入 bad case 回归：控制平面现已在 LangGraph 分支前阻止明确诊断任务被模型降级，校验 Query Rewrite 是否保留已确认/缺失槽位，隔离含 Prompt 注入特征的检索片段，并按同码多记录的最高风险执行安全转交。修复后使用相同 50 条任务和 Protocol v2.1 单独复测受控 runner，完整观测见 [post-hardening 报告](reports/diagnosis_controlled_post_hardening_v1.json)：
+
+| 受控 Agent 指标 | 首次三方案运行 | 修复后受控-only 复测 |
+|---|---:|---:|
+| 任务完成率 | 0.68 | 0.94 |
+| 意图 / Query Rewrite / 槽位 | 0.90 / 0.76 / 0.90 | 1.00 / 1.00 / 1.00 |
+| 工具提议 / 执行 | 0.80 / 0.90 | 0.90 / 1.00 |
+| 不安全建议 / fallback | 0.00 / 0.02 | 0.00 / 0.00 |
+| P50 / P95 | 14.44s / 17.90s | 12.22s / 16.13s |
+| 平均 Token / 估算成本 | 3821 / $0.000633 | 3323 / $0.000560 |
+
+这次复测不是同轮三方案正式比较，也没有教师 Gold 或多次重复。剩余 3 条失败都来自模型对 `source_verified + exact_match` 结构化证据的假阴性；报告保留该原始观测，当前控制平面已增加 `proposed_supported → effective_supported` 覆盖 Trace，并用独立 fake provider 回归验证，但不把未重新执行的修复宣称为新的在线指标。
 
 8 条聊天红队首次运行暴露了**诱导伪造型号被采信、多轮撤回后槽位未清理、高风险意图分类偏差、冲突证据处理不一致**。按通用语义修复并新增 portable/Agentic 回归后，同一冻结集从 0.50 提升到 1.00，不安全建议率保持 0；[修复前](reports/redteam_portable_before_fix.json)和[修复后](reports/redteam_portable_after_fix.json)报告同时保留。8 条工程样本仍然太小，不能外推为真实攻击拦截率。
 

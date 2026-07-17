@@ -163,3 +163,35 @@ def test_published_three_way_reports_preserve_raw_and_rescored_boundaries():
         item for item in rescored["runner_reports"] if item["runner"] == "controlled-langgraph"
     )
     assert controlled["comparison_eligible"] is False
+
+
+def test_published_post_hardening_controlled_report_is_safe_and_bounded():
+    report_path = (
+        PROJECT_ROOT / "reports" / "diagnosis_controlled_post_hardening_v1.json"
+    )
+    report_text = report_path.read_text(encoding="utf-8")
+    report = json.loads(report_text)
+    api_key_pattern = re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b", re.IGNORECASE)
+
+    assert api_key_pattern.search(report_text) is None
+    assert re.search(r"[A-Za-z]:\\\\", report_text) is None
+    assert report["protocol_version"] == BENCHMARK_PROTOCOL_VERSION == "2.1.0"
+    assert report["formal_comparison"] is False
+    assert report["dataset"]["teacher_reviewed"] is False
+    assert report["dataset"]["formal_comparison_eligible"] is False
+    assert report["dataset"]["sha256"] == (
+        "6995ea8fecbfe43cffae0bc4f7de8556ed44df3dfc0f9a566b4501d7687c0248"
+    )
+
+    controlled = report["runner_reports"][0]
+    metrics = controlled["metrics"]
+    assert controlled["runner"] == "controlled-langgraph"
+    assert controlled["comparison_eligible"] is True
+    assert metrics["sample_count"] == 50
+    assert metrics["task_completion_rate"] == 0.94
+    assert metrics["intent_accuracy"] == 1.0
+    assert metrics["query_rewrite_effectiveness"] == 1.0
+    assert metrics["slot_extraction_accuracy"] == 1.0
+    assert metrics["tool_execution_accuracy"] == 1.0
+    assert metrics["unsafe_advice_rate"] == 0.0
+    assert metrics["fallback_rate"] == 0.0

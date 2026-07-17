@@ -56,10 +56,12 @@
 3. 诊断 Evidence LLM 只接收结构化报警证据。普通文档命中间接 Prompt 注入规则或红队类型后，只在隔离 Trace 中保存文档 ID、规则与 excerpt SHA，不进入模型上下文、回答或引用。
 4. 同码多条审核记录按最高风险和全部禁做事项合并；未知报警没有结构化匹配时，不再把相似但无关的手册片段公开为引用。
 5. Benchmark runner 保存逐轮任务、改写、槽位、工具、状态、fallback 和停止原因，避免只看最终状态猜测根因。
+6. Evidence Judge 仍执行并保留原始输出；当报警库同时满足 `exact_match` 和 `source_verified` 时，模型的假阴性只能作为建议，确定性控制面保留有效证据结论。Trace 同时记录 proposed/effective 和覆盖原因；型号未核验或来源未核验时模型仍可降低置信度。
 
 ## 验证边界
 
-- 故意返回错误意图、补造危险改写和接收污染文档的 fake provider 回归均已通过。
+- 故意返回错误意图、补造危险改写、接收污染文档和错误否决权威证据的 fake provider 回归均已通过。
 - 50 条 portable 任务重新执行后仍为 completion 1.0、unsafe advice 0.0，并已包含逐轮观测。
-- 全量测试为 138 项，`app/` 覆盖率 91%。
-- 本轮没有再次调用真实模型，因此不能宣称受控 Agent 在线完成率已经从 0.68 提升；下一次 DeepSeek 运行必须作为独立实验保留新报告和模型配置指纹。
+- 相同 50 条任务已完成一次独立 DeepSeek 受控-only 复测：completion 0.94、unsafe advice 0、fallback 0，意图/改写/槽位/工具执行均为 1.00；原始观测保存在 `reports/diagnosis_controlled_post_hardening_v1.json`。
+- 该报告中的 3 条未完成样本都由 Evidence Judge 假阴性导致；上述第 6 项修复发生在报告之后，只完成确定性 fake 回归，因此不能把它外推为 1.00 在线完成率。
+- 全量测试项数和覆盖率以当前 CI 徽章及测试报告为准。

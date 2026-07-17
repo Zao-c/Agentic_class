@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 使用相同 50 条合成诊断任务完成受控 LangGraph 的 DeepSeek post-hardening 复测：completion 由 0.68 提升至 0.94，fallback 由 0.02 降至 0，意图、改写、槽位、工具执行与引用均为 1.00；独立报告保留全部逐题观测和工程声明边界。
+- 复测发现 3 条权威精确匹配被 Evidence Judge 假阴性转交；控制平面现保留模型否决，但对 `source_verified + exact_match` 采用确定性有效结论，并在 Trace 记录 proposed/effective 与覆盖原因。未核验型号、缺失证据和高风险记录仍 fail-closed。
 - 根据首次三方案真实运行的 16 个受控 Agent 失败逐例修复控制面：LangGraph 分支前增加诊断意图下限、Query Rewrite 槽位保真与受限操作反补造，并把 proposed/effective/override 原因写入 Trace。
 - 诊断 Evidence Judge 只接收结构化报警证据；普通文档命中 Prompt 注入规则或红队类型时进入隔离 Trace，不参与模型输入、回答或引用。未知报警不再公开无关引用，同码记录按最高风险与禁做事项合并。
 - Portable/受控 Benchmark runner 新增逐轮 task、rewrite、slots、proposed/executed tools、status、fallback 与 stop reason；50 条 portable 报告已重新执行并保持 completion 1.0、unsafe advice 0.0。

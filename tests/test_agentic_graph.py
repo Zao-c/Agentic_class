@@ -132,6 +132,32 @@ class FailingStructuredProvider(FakeStructuredProvider):
         raise DecisionProviderError("provider unavailable", attempts=2)
 
 
+class RejectingEvidenceProvider(FakeStructuredProvider):
+    """Simulate an Evidence Judge false negative on authoritative evidence."""
+
+    def decide(
+        self,
+        node: str,
+        schema: Type[BaseModel],
+        system_instruction: str,
+        payload: Dict[str, Any],
+    ) -> DecisionCall:
+        base = super().decide(node, schema, system_instruction, payload)
+        if schema is EvidenceSupportDecision:
+            value = EvidenceSupportDecision(
+                supported=False,
+                confidence=0.7,
+                supported_claims=[],
+                unsupported_claims=["无法确认报警含义"],
+                decision_basis="模拟模型假阴性",
+            )
+            return DecisionCall(
+                value,
+                {**base.trace, "output": value.model_dump(mode="json")},
+            )
+        return base
+
+
 class StaleHistoryStructuredProvider(FakeStructuredProvider):
     """Actively proposes withdrawn history so the deterministic gate is exercised."""
 
@@ -656,6 +682,39 @@ def test_high_risk_structured_alarm_skips_model_evidence_gate(tmp_path: Path):
         assert trace["state"]["evidence_details"]["llm_support"]["skipped"] == (
             "deterministic_high_risk"
         )
+
+
+def test_authoritative_exact_match_overrides_model_evidence_false_negative(
+    tmp_path: Path,
+):
+    provider = RejectingEvidenceProvider()
+    with _agentic_client(tmp_path, provider, use_public_alarms=True) as client:
+        response = client.post(
+            "/api/v1/chat",
+            json={
+                "session_id": "agentic-authoritative-evidence",
+                "user_id": "student-authoritative-evidence",
+                "message": "ABB IRB120 报警38213，发生在手动模式。",
+            },
+        ).json()
+        result = client.get(
+            "/api/v1/runs/%s" % response["run_id"],
+            headers={"X-User-ID": "student-authoritative-evidence"},
+        ).json()
+        trace = client.get(
+            "/api/v1/traces/%s" % response["request_id"],
+            headers={"X-Role": "teacher"},
+        ).json()
+
+        evidence_details = trace["state"]["evidence_details"]
+        assert result["status"] == "completed"
+        assert evidence_details["lookup_status"] == "exact_match"
+        assert evidence_details["llm_support"]["supported"] is False
+        assert evidence_details["gate_override"] == {
+            "proposed_supported": False,
+            "effective_supported": True,
+            "reason": "authoritative_exact_match_control_plane",
+        }
 
 
 def test_agentic_query_gate_rejects_model_invented_restricted_actions(tmp_path: Path):

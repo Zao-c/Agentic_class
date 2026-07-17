@@ -65,3 +65,4 @@ reports/*
 !reports/diagnosis_synthetic_50_portable_v1.json
 !reports/diagnosis_three_way_engineering_raw_v1.json
 !reports/diagnosis_three_way_engineering_rescored_v2_1.json
+!reports/diagnosis_controlled_post_hardening_v1.json
