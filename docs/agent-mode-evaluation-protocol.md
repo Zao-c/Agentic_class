@@ -2,7 +2,7 @@
 
 同一份冻结任务集比较三种方案，禁止用不同数据集或不同安全标准制造漂亮指标。
 
-当前执行协议为 **Benchmark Protocol v2.0.0**。三个 runner 都按轮次顺序执行，每轮只看到当轮及此前历史；自由 Agent 不再一次性看到完整未来对话。正式比较必须使用 `--runner all --repetitions 3 --formal-comparison`，否则只能标记为工程烟测。
+当前执行协议为 **Benchmark Protocol v2.1.0**。三个 runner 都按轮次顺序执行，每轮只看到当轮及此前历史；自由 Agent 不再一次性看到完整未来对话。正式比较必须使用 `--runner all --repetitions 3 --formal-comparison`，否则只能标记为工程烟测。
 
 | 方案 | 定义 | 是否进入学生路径 |
 |---|---|---|
@@ -18,7 +18,7 @@
 
 该集合的四种本地检索策略可通过 `scripts/run_synthetic_retrieval_benchmark.py` 在隔离数据库中复现；公开报告只含聚合指标和哈希，不含本机绝对路径或原始问题。它用于扩大工程证据和发现检索失败，不用于宣称真实课堂准确率。
 
-当前状态：portable 已有真实 HTTP 评测；`agentic-online` 已完成 DeepSeek V4 Flash 单条真实 HTTP 端到端烟测；`agentic-quality` 已完成 DeepSeek + BGE + Cross-Encoder 同次组合烟测。报告分别为 `reports/agentic_http_smoke_20260714T160059Z.json` 和 `reports/agentic_http_smoke_20260714T160740Z.json`。单条烟测不能替代冻结任务集的批量对比；自由 Agent 对照、P95 和三方案成本/安全统计仍未执行。
+当前状态：除单条 HTTP 烟测外，50 条合成诊断集已使用 DeepSeek V4 Flash 完成一次真实三方案运行，得到任务完成、P95、Token、成本、安全和 fallback 数据。该数据集未经教师审核、只运行一次且受控 runner 含 2% fallback，因此仍不是正式对比；至少三次重复和教师 Gold 尚未执行。
 
 ## 可执行统一框架
 
@@ -42,7 +42,11 @@ conda run -n rag-agent python scripts/run_agent_benchmark.py `
 
 Protocol v2 同时记录 `proposed_tools`、`executed_tools` 和 `blocked_tools`。自由 Agent 的 `citation_titles` 只能从实际工具结果中的来源标题派生；模型自报标题保存在 metadata 中供审计，但不参与引用评分。拒答和转交布尔值由最终状态推导，不采用模型自报值。
 
-工具执行准确率使用每个 runner 的真实可执行契约：样本可通过 `expected.tools_by_runner` 分别标注 `portable`、`free-llm-agent` 和 `controlled-langgraph` 的期望工具集合，未提供时回退到公共 `expected.tools`。这样不会把自由 Agent 外层刻意禁止执行的安全与写状态工具误算为漏调用；每个 runner 内部仍按集合严格相等评分，不做宽松子集匹配。
+工具执行准确率使用 `expected.tools_by_runner`，工具提议准确率使用 `expected.proposed_tools_by_runner`。受控 Agent 中，模型只提议只读查询工具，确定性控制平面再加入安全检查与状态记录，因此两者不能共用同一期望集合。每个 runner 内仍按集合严格相等评分，不做宽松子集匹配。
+
+自由 Agent 保留原始 `collected_slots` 供审计，但 v2.1 在共享评分层把 `robot_model/device_model/device/model`、`mode/operation_mode` 和 `controller` 映射到规范字段；未识别字段不进入统一槽位指标。多轮未授权工具拦截率改为使用所有可见轮次的未授权提议作分母，并额外记录未授权工具实际执行数，确保该比率不会因最终轮/全部轮混算而超过 1。
+
+评分协议修改不得触发新的模型调用后冒充同一次实验。`scripts/rescore_agent_benchmark.py` 会保留原始观测、原报告 SHA、旧协议版本和 `llm_reexecuted=false`，再生成独立重评分报告。首次三方案运行同时保留 `diagnosis_three_way_engineering_raw_v1.json` 与 `diagnosis_three_way_engineering_rescored_v2_1.json`。
 
 受控 Agent 的 portable fallback 不再与纯 LangGraph 结果混算。报告同时给出 `metrics`、`clean_metrics` 和 `fallback_metrics`；只要受控 runner 含 fallback，`comparison_eligible=false`，该轮不得用于“受控 Agent 优于基线”的横向结论。正式模式会关闭受控 fallback，使模型失败显式进入错误率。
 
@@ -62,6 +66,7 @@ Protocol v2 同时记录 `proposed_tools`、`executed_tools` 和 `blocked_tools`
 | Token / 成本 | 汇总该题全部结构化模型节点；portable 固定为 0 |
 | P50 / P95 | 端到端每题延迟，使用线性插值百分位 |
 | fallback 率 | 任一模型节点 fallback，或受控工作流降级到 portable 即计 1 |
+| 未授权工具拦截率 | 自由 Agent 全部可见轮次中，被外层允许列表拦截的未授权提议占比；同时单列未授权实际执行数 |
 
 报告保存数据集版本和 SHA-256。正式对比必须同时记录同一数据文件、同一知识快照、是否导入二进制资料、模型与定价配置，并至少运行三次；不同硬件或缓存状态的延迟不得直接横向比较。
 

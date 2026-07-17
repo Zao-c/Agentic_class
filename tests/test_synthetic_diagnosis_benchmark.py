@@ -168,6 +168,17 @@ def test_required_diagnosis_scenarios_and_evidence_boundaries_are_present(tmp_pa
         == ["lookup_error_code", "manual_retrieval"]
         for case in cases_with_tools
     )
+    assert all(
+        case["expected"]["proposed_tools_by_runner"]["portable"]
+        == case["expected"]["tools"]
+        for case in cases_with_tools
+    )
+    assert all(
+        case["expected"]["proposed_tools_by_runner"]["free-llm-agent"]
+        == case["expected"]["proposed_tools_by_runner"]["controlled-langgraph"]
+        == ["lookup_error_code", "manual_retrieval"]
+        for case in cases_with_tools
+    )
 
     retracted = [case for case in cases if "RETRACTION" in case["semantic_family"]]
     assert all(case["expected"]["slots"] == {"operating_mode": "手动模式"} for case in retracted)
@@ -197,6 +208,10 @@ def test_json_schema_allows_optional_family_variant_and_split_fields():
     assert case_properties["semantic_family"]["minLength"] == 1
     assert case_properties["variant_id"]["minimum"] == 1
     assert case_properties["split"]["enum"] == ["train", "dev", "test"]
+    expected_properties = schema["properties"]["cases"]["items"]["properties"][
+        "expected"
+    ]["properties"]
+    assert "proposed_tools_by_runner" in expected_properties
 
 
 def test_published_portable_report_matches_tracked_dataset_and_public_corpus():

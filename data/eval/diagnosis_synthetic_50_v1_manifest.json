@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "dataset_id": "diagnosis_synthetic_50_v1",
-  "version": "2026-07-16-v1",
+  "version": "2026-07-17-v1.1",
   "status": "synthetic_engineering_validation",
   "simulation": true,
   "actor_role": "synthetic_student",
@@ -33,13 +33,13 @@
   },
   "generation": {
     "generator": "scripts/generate_synthetic_diagnosis_benchmark.py",
-    "generator_version": "1.0.0",
+    "generator_version": "1.1.0",
     "seed": 20260716,
     "uses_llm": false,
     "blueprint_sha256": "b86b77554db27b78ad3242ee144e9379f8db6c40e41c023c5416a1cfefb09bdd"
   },
   "artifacts": {
-    "dataset_sha256": "4e8dd963a260de624f95095547e99a92c4cb408af3b1a9344b913bee35244e1e"
+    "dataset_sha256": "6995ea8fecbfe43cffae0bc4f7de8556ed44df3dfc0f9a566b4501d7687c0248"
   },
   "evidence_boundary": {
     "course_reference_profile": "ABB IRB 120 + IRC5/RobotWare 6 family",

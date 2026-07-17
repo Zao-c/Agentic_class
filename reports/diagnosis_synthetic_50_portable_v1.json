@@ -1,12 +1,12 @@
 {
   "schema_version": "1.1.0",
-  "protocol_version": "2.0.0",
-  "evaluation_run_id": "agent_comparison_20260717T014949Z",
+  "protocol_version": "2.1.0",
+  "evaluation_run_id": "agent_comparison_20260717T025447Z",
   "experiment_status": "completed",
   "formal_comparison": false,
   "dataset": {
     "id": "diagnosis_synthetic_50_v1",
-    "version": "2026-07-16-v1",
+    "version": "2026-07-17-v1.1",
     "status": "synthetic_engineering_validation",
     "teacher_reviewed": false,
     "data_origin": "synthetic_public",
@@ -14,7 +14,7 @@
     "label_authority": "simulation",
     "metric_eligibility": "synthetic_engineering_only",
     "formal_comparison_eligible": false,
-    "sha256": "4e8dd963a260de624f95095547e99a92c4cb408af3b1a9344b913bee35244e1e",
+    "sha256": "6995ea8fecbfe43cffae0bc4f7de8556ed44df3dfc0f9a566b4501d7687c0248",
     "case_count": 50
   },
   "repetitions": 1,
@@ -84,11 +84,13 @@
         "unsafe_advice_rate": 0.0,
         "average_tokens": 0,
         "average_cost_usd": 0.0,
-        "latency_p50_ms": 1110.29,
-        "latency_p95_ms": 1674.54,
+        "latency_p50_ms": 914.67,
+        "latency_p95_ms": 1355.28,
         "fallback_rate": 0.0,
         "runner_error_rate": 0.0,
         "unauthorized_tool_block_rate": null,
+        "unauthorized_tool_proposal_count": 0,
+        "unauthorized_tool_execution_count": 0,
         "proposed_tool_count": 140,
         "executed_tool_count": 140,
         "blocked_tool_count": 0
@@ -109,11 +111,13 @@
         "unsafe_advice_rate": 0.0,
         "average_tokens": 0,
         "average_cost_usd": 0.0,
-        "latency_p50_ms": 1110.29,
-        "latency_p95_ms": 1674.54,
+        "latency_p50_ms": 914.67,
+        "latency_p95_ms": 1355.28,
         "fallback_rate": 0.0,
         "runner_error_rate": 0.0,
         "unauthorized_tool_block_rate": null,
+        "unauthorized_tool_proposal_count": 0,
+        "unauthorized_tool_execution_count": 0,
         "proposed_tool_count": 140,
         "executed_tool_count": 140,
         "blocked_tool_count": 0
@@ -139,6 +143,8 @@
         "fallback_rate": 0.0,
         "runner_error_rate": 0.0,
         "unauthorized_tool_block_rate": null,
+        "unauthorized_tool_proposal_count": 0,
+        "unauthorized_tool_execution_count": 0,
         "proposed_tool_count": 0,
         "executed_tool_count": 0,
         "blocked_tool_count": 0
@@ -180,7 +186,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1082.71,
+          "latency_ms": 863.76,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -239,7 +245,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1080.08,
+          "latency_ms": 933.8,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -298,7 +304,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1283.73,
+          "latency_ms": 990.83,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -357,7 +363,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1221.62,
+          "latency_ms": 931.2,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -416,7 +422,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1113.93,
+          "latency_ms": 918.76,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -475,7 +481,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1080.23,
+          "latency_ms": 908.62,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -534,7 +540,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1048.14,
+          "latency_ms": 912.15,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -593,7 +599,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1092.46,
+          "latency_ms": 883.17,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -652,7 +658,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1221.84,
+          "latency_ms": 1062.21,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -711,7 +717,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1104.29,
+          "latency_ms": 835.59,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -755,7 +761,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 581.55,
+          "latency_ms": 486.7,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -799,7 +805,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 573.16,
+          "latency_ms": 464.34,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -843,7 +849,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 585.64,
+          "latency_ms": 511.11,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -887,7 +893,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 575.51,
+          "latency_ms": 473.28,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -931,7 +937,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 557.43,
+          "latency_ms": 474.11,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -991,7 +997,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1204.99,
+          "latency_ms": 873.99,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1051,7 +1057,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1106.64,
+          "latency_ms": 919.61,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1111,7 +1117,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1084.15,
+          "latency_ms": 1104.91,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1171,7 +1177,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1119.56,
+          "latency_ms": 921.95,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1231,7 +1237,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1199.88,
+          "latency_ms": 917.19,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1289,7 +1295,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1536.12,
+          "latency_ms": 1040.01,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1347,7 +1353,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1517.53,
+          "latency_ms": 1244.51,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1405,7 +1411,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1257.0,
+          "latency_ms": 1277.25,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1463,7 +1469,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1209.72,
+          "latency_ms": 907.13,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1521,7 +1527,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1355.01,
+          "latency_ms": 1001.81,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1579,7 +1585,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1159.81,
+          "latency_ms": 894.01,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1637,7 +1643,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1012.01,
+          "latency_ms": 880.78,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1695,7 +1701,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1042.1,
+          "latency_ms": 866.26,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1753,7 +1759,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1005.94,
+          "latency_ms": 1132.25,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1811,7 +1817,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 991.93,
+          "latency_ms": 855.98,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1870,7 +1876,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1600.38,
+          "latency_ms": 1230.4,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1929,7 +1935,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1470.41,
+          "latency_ms": 1312.98,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -1988,7 +1994,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1538.42,
+          "latency_ms": 1330.17,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2047,7 +2053,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1795.72,
+          "latency_ms": 1390.06,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2106,7 +2112,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1539.4,
+          "latency_ms": 1324.51,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2165,7 +2171,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1555.37,
+          "latency_ms": 1375.83,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2224,7 +2230,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1684.61,
+          "latency_ms": 1250.21,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2283,7 +2289,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 2149.82,
+          "latency_ms": 1573.35,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2342,7 +2348,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1573.54,
+          "latency_ms": 1280.91,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2401,7 +2407,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1662.24,
+          "latency_ms": 1269.98,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2444,7 +2450,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1171.88,
+          "latency_ms": 887.75,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2487,7 +2493,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1002.43,
+          "latency_ms": 839.29,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2530,7 +2536,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1022.83,
+          "latency_ms": 1172.03,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2573,7 +2579,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 763.56,
+          "latency_ms": 621.24,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2616,7 +2622,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1024.89,
+          "latency_ms": 827.4,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2657,7 +2663,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 743.42,
+          "latency_ms": 581.5,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2698,7 +2704,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 1382.3,
+          "latency_ms": 566.59,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2739,7 +2745,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 695.05,
+          "latency_ms": 573.04,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2780,7 +2786,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 714.5,
+          "latency_ms": 578.98,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2821,7 +2827,7 @@
           "input_tokens": 0,
           "output_tokens": 0,
           "estimated_cost_usd": 0.0,
-          "latency_ms": 732.17,
+          "latency_ms": 605.7,
           "fallback_used": false,
           "error": null,
           "metadata": {
@@ -2847,6 +2853,6 @@
       ]
     }
   ],
-  "created_at": "2026-07-17T01:49:49.433902+00:00",
+  "created_at": "2026-07-17T02:54:47.530603+00:00",
   "claim_boundary": "合成模拟课堂工程验证结果；模拟教师或学生不构成真实教师审核，不得用于正式准确率或 Gold Benchmark 宣传。"
 }

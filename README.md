@@ -18,7 +18,7 @@
 | 工具参数真的参与执行 | Trace 同时保存 `proposed_plan`、`validated_plan`、`executed_plan`；伪造、越权和无来源参数会被删除、覆盖或拒绝 |
 | 三类任务工程闭环 | 问答、逐槽故障诊断、辅导出题/批改均进入 Run、SSE、Trace、反馈和回归链路 |
 | 数据治理而非造 Gold | [132 条候选快照聚合证据](data/datasets/candidate-course-qa-summary-v1.json)可公开核验，题目内容仍保持私有；只有具名教师审核、三项检查和哈希复验通过后才能冻结 Gold |
-| 可复现与可发布 | 126 项本地测试通过、`app/` 覆盖率 91%；公开仓库包含 180 条合成检索任务、50 条多轮诊断任务与隔离运行器 |
+| 可复现与可发布 | 131 项本地测试通过、`app/` 覆盖率 91%；公开仓库包含 180 条合成检索任务、50 条多轮诊断任务与隔离运行器 |
 
 > **证据边界：** 正式 RAG/诊断/辅导评测仍只有 12/7/4 条；结构化报警库现有 9 条来源核验记录，但学校实机版本和教师审核仍未确认。真实学员 bad case 为 0，教师确认 Gold 为 0。单条 LLM 烟测只证明链路能运行；下表的 portable 数据使用公开合成语料和工程冻结题，也不代表生产准确率。
 
@@ -56,7 +56,7 @@ Portable 在仅使用该公开摘要目录时完成 50 条单次实跑：[原始
 | 意图 / Rewrite / 槽位 / 工具 | 1.0000 / 1.0000 / 1.0000 / 1.0000 |
 | 引用 / 拒答 / 安全转交 | 1.0000 / 1.0000 / 1.0000 |
 | 不安全建议率 | 0.0000 |
-| P50 / P95 | 1110.29 / 1674.54 ms |
+| P50 / P95 | 914.67 / 1355.28 ms |
 
 > 这里的 100% 是“合成任务符合当前可执行协议”的契约回归结果，不是故障诊断准确率。数据没有真实学员、教师审核或学校设备清单，且 50 条任务只覆盖 9 条结构化记录中的 `38213` 与 `10036`；因此它被强制标记为 `synthetic_engineering_only`，不能用于 Gold 或正式三方案质量结论。CI 会重新执行全部 50 条，并把 completion 1.0、unsafe advice 0.0 作为工程契约门禁。
 
@@ -95,13 +95,17 @@ flowchart LR
 
 统一 Harness 已支持 `portable`、隔离的 `free-llm-agent` 和 `controlled-langgraph`，记录意图、Query Rewrite、槽位、工具、完成率、引用、拒答、安全转交、Token、成本、P50/P95 与 fallback。
 
-Benchmark Protocol v2.0.0 已统一三个 runner 的逐轮交互口径；自由 Agent 的引用只从实际工具结果提取，模型自报引用不参与评分；受控 Agent 一旦发生 portable fallback，会单独进入 `fallback_metrics` 并取消横向比较资格。正式模式还会记录语料、报警库、知识点、配置与模型配置指纹。
+Benchmark Protocol v2.1.0 已统一三个 runner 的逐轮交互口径；自由 Agent 的引用只从实际工具结果提取，模型自报引用不参与评分；模型提议工具与控制平面实际执行工具按不同契约评分。受控 Agent 一旦发生 portable fallback，会单独进入 `fallback_metrics` 并取消横向比较资格。
 
-| 方案 | 冻结工程集状态 | 任务完成率 | 当前结论 |
-|---|---:|---:|---|
-| Portable 状态机 | Protocol v2 公共样例，12 题 × 3 次 | 0.3333 | 可公开复现；稀疏合成语料下引用正确率为 0，诚实暴露证据不足 |
-| 自由 LLM Agent | 未运行 | — | 只允许在隔离 Harness 中运行，输出不进入学生路径 |
-| LangGraph 受控 Agent | 单条真实烟测；批量未运行 | — | 已证明真实模型链路，尚不能宣称质量提升 |
+50 条合成诊断集已使用 DeepSeek V4 Flash 完成一次真实三方案运行。原始观测保存在 [v2.0 原始报告](reports/diagnosis_three_way_engineering_raw_v1.json)；发现自由 Agent 槽位别名、受控 Agent 提议/执行工具契约和多轮拦截率三项评分口径问题后，在**不重新调用模型**的前提下生成 [v2.1 重评分报告](reports/diagnosis_three_way_engineering_rescored_v2_1.json)。
+
+| 方案 | 完成率 | 工具提议 / 执行 | 不安全建议 | P50 / P95 | 平均 Token / 估算成本 |
+|---|---:|---:|---:|---:|---:|
+| Portable 状态机 | 1.00 | 1.00 / 1.00 | 0.00 | 1.09s / 1.59s | 0 / $0 |
+| 自由 LLM Agent | 0.54 | 0.38 / 0.64 | 0.10 | 10.40s / 12.40s | 6818 / $0.001078 |
+| LangGraph 受控 Agent | 0.68 | 0.80 / 0.90 | 0.00 | 14.44s / 17.90s | 3821 / $0.000633 |
+
+受控 Agent 相比自由 Agent 提升任务完成率并消除了本轮不安全建议，同时平均 Token 和估算成本更低；但它仍显著慢于规则基线，且在撤回污染、资料缺失和多轮改写上失败。受控 runner 有 2% fallback，因此本轮 `comparison_eligible=false`；以上只是单次、合成工程烟测，不是正式质量结论。
 
 8 条聊天红队首次运行暴露了**诱导伪造型号被采信、多轮撤回后槽位未清理、高风险意图分类偏差、冲突证据处理不一致**。按通用语义修复并新增 portable/Agentic 回归后，同一冻结集从 0.50 提升到 1.00，不安全建议率保持 0；[修复前](reports/redteam_portable_before_fix.json)和[修复后](reports/redteam_portable_after_fix.json)报告同时保留。8 条工程样本仍然太小，不能外推为真实攻击拦截率。
 
@@ -122,7 +126,7 @@ conda run -n rag-agent python scripts/run_agent_benchmark.py `
 
 协议、指标定义和红队边界见 [Agent 模式对比评测协议](docs/agent-mode-evaluation-protocol.md)。当前主集与红队集均标记为 `frozen_engineering_validation`、`teacher_reviewed=false`。
 
-可复现原始结果见 [Protocol v2 portable 公共样例报告](reports/portable_benchmark_protocol_v2_public_sample.json)。该报告只有 portable 基线，不是三方案正式对比，也不能代表真实课程语料准确率。
+历史 portable 公共样例仍保留在 [Protocol v2 报告](reports/portable_benchmark_protocol_v2_public_sample.json)。所有公开结果都不是教师 Gold，也不能代表真实课程或设备诊断准确率。
 
 ## 三分钟启动
 

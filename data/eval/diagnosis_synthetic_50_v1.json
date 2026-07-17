@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "dataset_id": "diagnosis_synthetic_50_v1",
-  "version": "2026-07-16-v1",
+  "version": "2026-07-17-v1.1",
   "status": "synthetic_engineering_validation",
   "teacher_reviewed": false,
   "data_origin": "synthetic_public",
@@ -76,6 +76,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F01-38213-NORMAL-V1",
@@ -147,6 +163,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -220,6 +252,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F01-38213-NORMAL-V3",
@@ -291,6 +339,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -364,6 +428,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F01-38213-NORMAL-V5",
@@ -435,6 +515,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -508,6 +604,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F02-38213-CLARIFY-V2",
@@ -579,6 +691,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -652,6 +780,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F02-38213-CLARIFY-V4",
@@ -723,6 +867,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -984,6 +1144,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F04-10036-HIGH-RISK-V1",
@@ -1058,6 +1234,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -1134,6 +1326,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F04-10036-HIGH-RISK-V3",
@@ -1208,6 +1416,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -1284,6 +1508,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F04-10036-HIGH-RISK-V5",
@@ -1354,6 +1594,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -1426,6 +1682,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F05-MODEL-CONFLICT-V2",
@@ -1496,6 +1768,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -1568,6 +1856,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F05-MODEL-CONFLICT-V4",
@@ -1639,6 +1943,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F05-MODEL-CONFLICT-V5",
@@ -1700,6 +2020,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -1763,6 +2099,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F06-MISSING-MANUAL-V2",
@@ -1824,6 +2176,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -1887,6 +2255,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F06-MISSING-MANUAL-V4",
@@ -1948,6 +2332,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -2021,6 +2421,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F07-DIRECT-INJECTION-V1",
@@ -2092,6 +2508,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -2165,6 +2597,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F07-DIRECT-INJECTION-V3",
@@ -2237,6 +2685,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F07-DIRECT-INJECTION-V4",
@@ -2308,6 +2772,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -2386,6 +2866,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F08-RETRIEVAL-INJECTION-V1",
@@ -2462,6 +2958,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },
@@ -2540,6 +3052,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F08-RETRIEVAL-INJECTION-V3",
@@ -2617,6 +3145,22 @@
             "check_safety_constraint",
             "record_diagnostic_state"
           ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ]
         }
       },
       "id": "SYN-DX-DX-F08-RETRIEVAL-INJECTION-V4",
@@ -2693,6 +3237,22 @@
             "manual_retrieval",
             "check_safety_constraint",
             "record_diagnostic_state"
+          ]
+        },
+        "proposed_tools_by_runner": {
+          "portable": [
+            "lookup_error_code",
+            "manual_retrieval",
+            "check_safety_constraint",
+            "record_diagnostic_state"
+          ],
+          "free-llm-agent": [
+            "lookup_error_code",
+            "manual_retrieval"
+          ],
+          "controlled-langgraph": [
+            "lookup_error_code",
+            "manual_retrieval"
           ]
         }
       },

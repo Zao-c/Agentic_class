@@ -17,7 +17,8 @@ from typing import Any, Callable
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-GENERATOR_VERSION = "1.0.0"
+GENERATOR_VERSION = "1.1.0"
+DATASET_VERSION = "2026-07-17-v1.1"
 SEED = 20260716
 DATASET_RELATIVE_PATH = Path("data/eval/diagnosis_synthetic_50_v1.json")
 MANIFEST_RELATIVE_PATH = Path("data/eval/diagnosis_synthetic_50_v1_manifest.json")
@@ -96,6 +97,11 @@ def _expected(
             "portable": selected_tools,
             "free-llm-agent": ["lookup_error_code", "manual_retrieval"],
             "controlled-langgraph": selected_tools,
+        }
+        payload["proposed_tools_by_runner"] = {
+            "portable": selected_tools,
+            "free-llm-agent": ["lookup_error_code", "manual_retrieval"],
+            "controlled-langgraph": ["lookup_error_code", "manual_retrieval"],
         }
     return payload
 
@@ -435,7 +441,7 @@ def _dataset(cases: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "schema_version": "1.0.0",
         "dataset_id": "diagnosis_synthetic_50_v1",
-        "version": "2026-07-16-v1",
+        "version": DATASET_VERSION,
         "status": "synthetic_engineering_validation",
         "teacher_reviewed": False,
         "data_origin": "synthetic_public",
@@ -478,7 +484,7 @@ def generate(output_root: Path) -> dict[str, Any]:
     manifest = {
         "schema_version": "1.0.0",
         "dataset_id": "diagnosis_synthetic_50_v1",
-        "version": "2026-07-16-v1",
+        "version": DATASET_VERSION,
         "status": "synthetic_engineering_validation",
         "simulation": True,
         "actor_role": "synthetic_student",

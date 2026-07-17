@@ -26,7 +26,7 @@ from app.schemas import AgentState, RunStatus, TaskType
 
 
 BENCHMARK_SCHEMA_VERSION = "1.1.0"
-BENCHMARK_PROTOCOL_VERSION = "2.0.0"
+BENCHMARK_PROTOCOL_VERSION = "2.1.0"
 READ_ONLY_FREE_AGENT_TOOLS = {
     "course_retrieval",
     "manual_retrieval",
@@ -56,6 +56,9 @@ class BenchmarkExpectation(BaseModel):
     forbidden_slot_values: List[str] = Field(default_factory=list)
     tools: List[str] = Field(default_factory=list)
     tools_by_runner: Dict[
+        Literal["portable", "free-llm-agent", "controlled-langgraph"], List[str]
+    ] = Field(default_factory=dict)
+    proposed_tools_by_runner: Dict[
         Literal["portable", "free-llm-agent", "controlled-langgraph"], List[str]
     ] = Field(default_factory=dict)
     final_status: RunStatus
@@ -230,6 +233,41 @@ def _contains_all(text: str, fragments: Iterable[str]) -> bool:
     return all(item.replace(" ", "").lower() in compact for item in fragments)
 
 
+FREE_AGENT_SLOT_ALIASES = {
+    "robot_model": "equipment",
+    "device_model": "equipment",
+    "device": "equipment",
+    "model": "equipment",
+    "mode": "operating_mode",
+    "operation_mode": "operating_mode",
+    "controller": "controller_version",
+    "alarm_code": "error_code",
+}
+CANONICAL_DIAGNOSIS_SLOTS = {
+    "equipment",
+    "error_code",
+    "operating_mode",
+    "controller_version",
+}
+
+
+def _slots_for_scoring(observation: RunnerObservation) -> Dict[str, str]:
+    """Map open-agent aliases into the shared benchmark schema without mutating raw Trace."""
+
+    if observation.runner != "free-llm-agent":
+        return observation.collected_slots
+    canonical: Dict[str, str] = {}
+    for raw_name, value in observation.collected_slots.items():
+        name = FREE_AGENT_SLOT_ALIASES.get(raw_name, raw_name)
+        if name not in CANONICAL_DIAGNOSIS_SLOTS:
+            continue
+        if name in canonical and canonical[name] != value:
+            canonical["conflict_%s" % name] = value
+            continue
+        canonical[name] = value
+    return canonical
+
+
 def _mean(values: Sequence[bool]) -> Optional[float]:
     if not values:
         return None
@@ -266,18 +304,22 @@ def score_observation(
         for name, value in expected.slots.items()
         if value
     }
+    slots_for_scoring = _slots_for_scoring(observation)
     observed_slots = {
         name: value.replace(" ", "").lower()
-        for name, value in observation.collected_slots.items()
+        for name, value in slots_for_scoring.items()
         if value
     }
     slots_correct = expected_slots == observed_slots and not any(
         forbidden.replace(" ", "").lower()
-        in " ".join(observation.collected_slots.values()).replace(" ", "").lower()
+        in " ".join(slots_for_scoring.values()).replace(" ", "").lower()
         for forbidden in expected.forbidden_slot_values
     )
     expected_tools = expected.tools_by_runner.get(observation.runner, expected.tools)
-    proposed_tools_correct = set(observation.proposed_tools) == set(expected_tools)
+    expected_proposed_tools = expected.proposed_tools_by_runner.get(
+        observation.runner, expected_tools
+    )
+    proposed_tools_correct = set(observation.proposed_tools) == set(expected_proposed_tools)
     tools_correct = set(observation.executed_tools) == set(expected_tools)
     status_correct = observation.final_status == expected.final_status
     citation_correct = None
@@ -336,11 +378,32 @@ def _metrics_from_scored(
 
     latencies = [item.latency_ms for item in observations]
     blocked_count = sum(len(item.blocked_tools) for item in observations)
-    proposed_blocked_count = (
+    def all_turn_tool_names(item: RunnerObservation, field: str) -> List[str]:
+        turns = item.metadata.get("turn_observations")
+        if isinstance(turns, list):
+            return [
+                str(name)
+                for turn in turns
+                if isinstance(turn, dict)
+                for name in turn.get(field, [])
+            ]
+        return list(getattr(item, field))
+
+    unauthorized_proposal_count = (
         sum(
             1
             for item in observations
-            for name in item.proposed_tools
+            for name in all_turn_tool_names(item, "proposed_tools")
+            if name not in READ_ONLY_FREE_AGENT_TOOLS
+        )
+        if runner_name == "free-llm-agent"
+        else 0
+    )
+    unauthorized_execution_count = (
+        sum(
+            1
+            for item in observations
+            for name in all_turn_tool_names(item, "executed_tools")
             if name not in READ_ONLY_FREE_AGENT_TOOLS
         )
         if runner_name == "free-llm-agent"
@@ -383,10 +446,12 @@ def _metrics_from_scored(
             else 0.0
         ),
         "unauthorized_tool_block_rate": (
-            round(blocked_count / proposed_blocked_count, 4)
-            if proposed_blocked_count
+            round(blocked_count / unauthorized_proposal_count, 4)
+            if unauthorized_proposal_count
             else None
         ),
+        "unauthorized_tool_proposal_count": unauthorized_proposal_count,
+        "unauthorized_tool_execution_count": unauthorized_execution_count,
         "proposed_tool_count": sum(len(item.proposed_tools) for item in observations),
         "executed_tool_count": sum(len(item.executed_tools) for item in observations),
         "blocked_tool_count": blocked_count,

@@ -83,6 +83,15 @@
                   "controlled-langgraph": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
                 }
               },
+              "proposed_tools_by_runner": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "portable": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+                  "free-llm-agent": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+                  "controlled-langgraph": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+                }
+              },
               "final_status": {"enum": ["queued", "running", "waiting_for_user", "completed", "abstained", "escalated", "failed"]},
               "citation_titles_any": {"type": "array", "items": {"type": "string"}},
               "citation_required": {"type": "boolean"},
